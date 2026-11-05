@@ -80,6 +80,10 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
 .btn.gold{background:var(--g);color:var(--dm)}.btn.ghost{background:#fff;color:var(--m);border:1.5px solid var(--m)}.btn.danger{background:#fff;color:#b3382c;border:1.5px solid #b3382c}
 .btn:disabled{opacity:.5}
 /* modal */
+.busy{position:fixed;inset:0;background:#2c181099;display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.busy .md{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:24px 28px;width:auto;min-width:220px}
+.busy .sp{width:34px;height:34px;border:4px solid #e6dcc0;border-top-color:var(--m);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .ov{position:fixed;inset:0;background:#2c181099;display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
 .md{background:var(--ow);border-radius:16px;max-width:440px;width:100%;padding:20px;max-height:86vh;overflow:auto;box-shadow:0 12px 40px #0005}
 .md h3{margin:0 0 8px;font:700 20px Georgia,serif;color:var(--m)}.md p{margin:0 0 8px;line-height:1.5;font-size:15px}
@@ -115,7 +119,7 @@ const S = {
   noteLimited:'Quantities are limited for each time slot. For large orders, please text Max at {phone}.',
   noteEarly:'{items}: order by {time} the night before pickup.',
   pickTitle:'Pick a day and time',next7:'Next 7 days',open:'Open',filling:'Filling Up',almost:'Almost Full',full:'Full',closed:'Closed',closedT:'Closed Tuesdays',
-  noTime:'No time selected yet',selected:'Selected',prevDays:'‹ Earlier',nextDays:'Later ›',swipe:'← Swipe to see more days →',loading:'Loading availability…',
+  noTime:'No time selected yet',selected:'Selected',prevDays:'‹ Earlier',nextDays:'Later ›',swipe:'← Swipe to see more days →',loading:'Loading availability…',checking:'Checking availability…',
   itemsTitle:'Choose your items',secBuns:'Buns',secDinner:'Dinner buns',secLoaves:'Loaves',
   discNote:'Buy {n} or more regular buns and pay {price} each instead of {cost}.',
   earlyBadge:'Order by {time} the day before',fastBadge:'Selling fast — order soon',noBadge:'Not available at this time. Try another time.',lockBadge:'Cutoff has passed for this date',
@@ -159,7 +163,7 @@ const S = {
   noteLimited:'每個時段的數量有限。大量訂單請發短訊給 Max：{phone}。',
   noteEarly:'{items}：請於取貨前一天晚上 {time} 前訂購。',
   pickTitle:'選擇日期及時間',next7:'未來 7 天',open:'有位',filling:'快滿',almost:'將滿',full:'已滿',closed:'休息',closedT:'逢星期二休息',
-  noTime:'尚未選擇時間',selected:'已選',prevDays:'‹ 較早',nextDays:'較後 ›',swipe:'← 左右滑動查看更多日期 →',loading:'正在載入…',
+  noTime:'尚未選擇時間',selected:'已選',prevDays:'‹ 較早',nextDays:'較後 ›',swipe:'← 左右滑動查看更多日期 →',loading:'正在載入…',checking:'正在查詢空位…',
   itemsTitle:'選擇產品',secBuns:'麵包',secDinner:'餐包',secLoaves:'方包',
   discNote:'購買 {n} 個或以上普通麵包，每個 {price}（原價 {cost}）。',
   earlyBadge:'須於前一天 {time} 前訂購',fastBadge:'即將售罄，請盡快訂購',noBadge:'此時段暫不供應，請選擇其他時間。',lockBadge:'此日期已過截單時間',
@@ -283,6 +287,15 @@ async function call(action, payload, ms) {
   }
 }
 
+/* ===================== BUSY POPUP (blocks the page while checking) ===================== */
+let busyN = 0;
+function showBusy(text) {
+  busyN++; let el = document.getElementById('busyRoot');
+  if (!el) { el = document.createElement('div'); el.id = 'busyRoot'; document.body.appendChild(el); }
+  el.innerHTML = `<div class="busy" role="alert" aria-live="polite"><div class="md"><div class="sp"></div><b>${esc(text)}</b></div></div>`;
+}
+function hideBusy() { busyN = Math.max(0, busyN - 1); if (!busyN) { const el = document.getElementById('busyRoot'); if (el) el.innerHTML = ''; } }
+
 /* ===================== MODAL ===================== */
 function modal(o) {
   return new Promise(res => {
@@ -335,10 +348,11 @@ async function refreshWeek(wait, ms) {
 
 /* ===================== SLOT SELECTION ===================== */
 async function selectSlot(dateK, label, skipFresh) {
-  if (st.checking) return; st.checking = true; markBusy(dateK, label, true);
-  if (!skipFresh) await refreshWeek(true, 8000);
-  else if (Date.now() - lastWeekAt > 5000) await refreshWeek(true, 8000);
-  st.checking = false; markBusy(dateK, label, false);
+  if (st.checking) return; st.checking = true; markBusy(dateK, label, true); showBusy(t('checking'));
+  try {
+    if (!skipFresh) await refreshWeek(true, 8000);
+    else if (Date.now() - lastWeekAt > 5000) await refreshWeek(true, 8000);
+  } finally { st.checking = false; markBusy(dateK, label, false); hideBusy(); }
   const day = dayData(dateK), sd = slotData(dateK, label);
   if (!day || day.closed) return info(t('mClosed'), t('closedDay'));
   if (!sd) return info(t('mHeads'), t('netErr'));
@@ -669,6 +683,10 @@ function scheduleWeek() { clearTimeout(weekTimer); weekTimer = setTimeout(async 
 document.addEventListener('visibilitychange', () => { if (!document.hidden && st.screen === 'form' && Date.now() - lastWeekAt > 15000) refreshWeek(false, 12000); });
 
 async function start() {
+  showBusy(t('loading'));
+  try { await startInner(); } finally { hideBusy(); }
+}
+async function startInner() {
   const token = new URLSearchParams(location.search).get('cancel');
   if (token) { st.mode = 'manage'; st.token = token; st.screen = 'loading'; }
   renderPage();
@@ -688,7 +706,7 @@ async function start() {
     scheduleWeek(); return;
   }
   if (wk && wk.days) { st.week = wk; lastWeekAt = Date.now(); renderGrid(); }
-  else if (!(cfg && cfg.options)) { const r = await modal({ title: t('mNet'), text: t('netErr'), buttons: [{ label: t('close'), cls: 'btn ghost', v: null }, { label: t('retry'), cls: 'btn', v: 'retry' }] }); if (r === 'retry') return start(); }
+  else if (!(cfg && cfg.options)) { const r = await modal({ title: t('mNet'), text: t('netErr'), buttons: [{ label: t('close'), cls: 'btn ghost', v: null }, { label: t('retry'), cls: 'btn', v: 'retry' }] }); if (r === 'retry') return startInner(); }
   else await refreshWeek(false, 15000);
   renderPage(); scheduleWeek();
 }
