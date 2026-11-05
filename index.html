@@ -43,15 +43,12 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
 /* items */
 .sec{margin:16px 0 6px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
 .sec small{text-transform:none;letter-spacing:0;font-weight:500;display:block;margin-top:2px;font-size:13px;color:var(--mu)}
-.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));column-gap:12px;row-gap:0}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--ow);display:flex;flex-direction:column}
 .card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#efe9d8}
-.card{margin-bottom:12px;grid-row:span 4}
 .card h3{padding:10px 12px 0}
 .card .tags{padding:2px 12px 0;min-height:28px}
-.card .rows{padding:0 12px 12px}
-@supports (grid-template-rows:subgrid){.card{display:grid;grid-template-rows:subgrid;row-gap:0}}
-@supports not (grid-template-rows:subgrid){.card{grid-row:auto}.card .rows{flex:1}}
+.card .rows{padding:0 12px 12px;flex:1}
 .card h3{margin:0;font-size:16px;line-height:1.25}
 .tags{min-height:0}.bdg{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;margin:3px 4px 0 0;background:#f3dede;color:var(--m)}
 .bdg.fast{background:#fff0cf;color:#8a5a00}.bdg.no{background:#eee;color:#6b655d}
@@ -94,7 +91,7 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
  .notes{grid-template-columns:1fr}
  .grid{grid-template-columns:66px repeat(var(--n,7),calc((100vw - 28px - 32px - 66px - 10px)/2))}
  .gt{font-size:11px}.gt small{display:none}.gc{min-height:48px;font-size:13px}.swipe{display:block}
- .two{grid-template-columns:1fr}.items{grid-template-columns:1fr 1fr;column-gap:10px}.card h3{font-size:14px}.vr{flex-wrap:wrap}.stp button{width:32px;height:32px}.stp input{width:28px}
+ .two{grid-template-columns:1fr}.items{grid-template-columns:1fr 1fr;gap:10px}.card h3{min-height:2.5em}.items.hasnote .tags{min-height:48px}.card h3{font-size:14px}.vr{flex-wrap:wrap}.stp button{width:32px;height:32px}.stp input{width:28px}
  header h1{font-size:19px}.btn{padding:13px 16px}
 }
 </style>
@@ -437,7 +434,7 @@ function renderItems() {
   const S0 = st.cfg.settings, bun = optsOf(capNames().find(c => sectionOf(c) === 'buns'))[0];
   const groups = { buns: [], dinner: [], loaves: [] };
   capNames().forEach(c => groups[sectionOf(c)].push(c));
-  const sec = (key, title, extra) => groups[key].length ? `<div class="sec">${esc(title)}${extra ? `<small>${esc(extra)}</small>` : ''}</div><div class="items">${groups[key].map(cardHtml).join('')}</div>` : '';
+  const sec = (key, title, extra) => groups[key].length ? `<div class="sec">${esc(title)}${extra ? `<small>${esc(extra)}</small>` : ''}</div><div class="items${groups[key].some(c => optsOf(c).some(o => o.cutoffMin != null)) ? ' hasnote' : ''}">${groups[key].map(cardHtml).join('')}</div>` : '';
   host.innerHTML = sec('buns', t('secBuns'), t('discNote', { n: S0.discountMinQty, price: money(S0.discountPrice), cost: money(bun ? bun.cost : 2.2) })) + sec('dinner', t('secDinner')) + sec('loaves', t('secLoaves'));
   updateItemStates();
 }
