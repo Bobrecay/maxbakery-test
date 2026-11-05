@@ -43,15 +43,20 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
 /* items */
 .sec{margin:16px 0 6px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
 .sec small{text-transform:none;letter-spacing:0;font-weight:500;display:block;margin-top:2px;font-size:13px;color:var(--mu)}
-.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));column-gap:12px;row-gap:0}
 .card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--ow);display:flex;flex-direction:column}
 .card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#efe9d8}
-.card .in{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px;flex:1}
+.card{margin-bottom:12px;grid-row:span 4}
+.card h3{padding:10px 12px 0}
+.card .tags{padding:2px 12px 0;min-height:28px}
+.card .rows{padding:0 12px 12px}
+@supports (grid-template-rows:subgrid){.card{display:grid;grid-template-rows:subgrid;row-gap:0}}
+@supports not (grid-template-rows:subgrid){.card{grid-row:auto}.card .rows{flex:1}}
 .card h3{margin:0;font-size:16px;line-height:1.25}
 .tags{min-height:0}.bdg{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;margin:3px 4px 0 0;background:#f3dede;color:var(--m)}
 .bdg.fast{background:#fff0cf;color:#8a5a00}.bdg.no{background:#eee;color:#6b655d}
 .card.off{opacity:.62}
-.vr{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:14px}.vr .pl{color:var(--mu)}.vr .pl b{color:var(--ink)}
+.vr{min-height:44px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:14px}.vr .pl{color:var(--mu);line-height:1.2}.vr .pl b{color:var(--ink)}
 .stp{display:flex;align-items:center;gap:2px;background:#f6efdc;border-radius:999px;padding:3px;flex:none}
 .stp button{width:36px;height:36px;border-radius:50%;border:0;background:#fff;color:var(--m);font-size:22px;line-height:1;box-shadow:0 1px 2px #0002;padding:0}
 .stp input{width:34px;border:0;background:transparent;text-align:center;font:700 16px inherit;color:var(--ink);padding:0;-moz-appearance:textfield}
@@ -89,7 +94,7 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
  .notes{grid-template-columns:1fr}
  .grid{grid-template-columns:66px repeat(var(--n,7),calc((100vw - 28px - 32px - 66px - 10px)/2))}
  .gt{font-size:11px}.gt small{display:none}.gc{min-height:48px;font-size:13px}.swipe{display:block}
- .two{grid-template-columns:1fr}.items{grid-template-columns:1fr 1fr;gap:10px}.card h3{font-size:14px}.vr{flex-wrap:wrap}.stp button{width:32px;height:32px}.stp input{width:28px}
+ .two{grid-template-columns:1fr}.items{grid-template-columns:1fr 1fr;column-gap:10px}.card h3{font-size:14px}.vr{flex-wrap:wrap}.stp button{width:32px;height:32px}.stp input{width:28px}
  header h1{font-size:19px}.btn{padding:13px 16px}
 }
 </style>
@@ -425,7 +430,7 @@ function cardHtml(cap) {
     return `<div class="vr"><span class="pl">${priceTxt}</span><div class="stp ${q > 0 ? 'on' : ''}"><button type="button" data-m="${esc(o.name)}" data-d="-1" aria-label="−">−</button><input type="number" inputmode="numeric" min="0" max="999" value="${q}" data-q="${esc(o.name)}" aria-label="${esc(itemName(cap))}"><button type="button" data-m="${esc(o.name)}" data-d="1" aria-label="+">+</button></div></div>`;
   }).join('');
   const early = os.find(o => o.cutoffMin != null);
-  return `<div class="card" data-cap="${esc(cap)}"><img src="${imgSrc(os[0].image)}" alt="" loading="lazy"><div class="in"><h3>${esc(itemName(cap))}</h3><div class="tags" data-tags>${early ? `<span class="bdg">${esc(t('earlyBadge', { time: early.cutoffText }))}</span>` : ''}</div>${rows}</div></div>`;
+  return `<div class="card" data-cap="${esc(cap)}"><img src="${imgSrc(os[0].image)}" alt="" loading="lazy"><h3>${esc(itemName(cap))}</h3><div class="tags" data-tags>${early ? `<span class="bdg">${esc(t('earlyBadge', { time: early.cutoffText }))}</span>` : ''}</div><div class="rows">${rows}</div></div>`;
 }
 function renderItems() {
   const host = $('itemsHost'); if (!host) return;
