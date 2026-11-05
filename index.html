@@ -348,11 +348,11 @@ async function refreshWeek(wait, ms) {
 
 /* ===================== SLOT SELECTION ===================== */
 async function selectSlot(dateK, label, skipFresh) {
-  if (st.checking) return; st.checking = true; markBusy(dateK, label, true); showBusy(t('checking'));
+  if (st.checking) return; st.checking = true; showBusy(t('checking'));
   try {
     if (!skipFresh) await refreshWeek(true, 8000);
     else if (Date.now() - lastWeekAt > 5000) await refreshWeek(true, 8000);
-  } finally { st.checking = false; markBusy(dateK, label, false); hideBusy(); }
+  } finally { st.checking = false; hideBusy(); }
   const day = dayData(dateK), sd = slotData(dateK, label);
   if (!day || day.closed) return info(t('mClosed'), t('closedDay'));
   if (!sd) return info(t('mHeads'), t('netErr'));
