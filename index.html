@@ -417,6 +417,12 @@ function renderGrid() {
 
 /* ===================== RENDER: ITEMS ===================== */
 function sectionOf(cap) { const o = optsOf(cap)[0]; if (/loaf/i.test(cap)) return 'loaves'; if (o && o.regular) return 'buns'; return 'dinner'; }
+// One reserved line under each title: the Note from Item Info, else the cutoff text, else an invisible placeholder so prices line up.
+function noteBadge(os) {
+  const n = os.find(o => o.note || o.noteZh), early = os.find(o => o.cutoffMin != null);
+  const txt = n ? (st.lang === 'zh' ? (n.noteZh || n.note) : (n.note || n.noteZh)) : (early ? t('earlyBadge', { time: early.cutoffText }) : '');
+  return txt ? `<span class="bdg">${esc(txt)}</span>` : '<span class="bdg" style="visibility:hidden">&nbsp;</span>';
+}
 function cardHtml(cap) {
   const os = optsOf(cap); if (!os.length) return '';
   const rows = os.map(o => {
@@ -425,7 +431,7 @@ function cardHtml(cap) {
     return `<div class="vr"><span class="pl">${priceTxt}</span><div class="stp ${q > 0 ? 'on' : ''}"><button type="button" data-m="${esc(o.name)}" data-d="-1" aria-label="−">−</button><input type="number" inputmode="numeric" min="0" max="999" value="${q}" data-q="${esc(o.name)}" aria-label="${esc(itemName(cap))}"><button type="button" data-m="${esc(o.name)}" data-d="1" aria-label="+">+</button></div></div>`;
   }).join('');
   const early = os.find(o => o.cutoffMin != null);
-  return `<div class="card" data-cap="${esc(cap)}"><img src="${imgSrc(os[0].image)}" alt="" loading="lazy"><div class="in"><h3>${esc(itemName(cap))}</h3><div class="tags" data-tags>${early ? `<span class="bdg">${esc(t('earlyBadge', { time: early.cutoffText }))}</span>` : ''}</div>${rows}</div></div>`;
+  return `<div class="card" data-cap="${esc(cap)}"><img src="${imgSrc(os[0].image)}" alt="" loading="lazy"><div class="in"><h3>${esc(itemName(cap))}</h3><div class="tags" data-tags>${noteBadge(os)}</div>${rows}</div></div>`;
 }
 function renderItems() {
   const host = $('itemsHost'); if (!host) return;
@@ -440,7 +446,7 @@ function updateItemStates() {
   const day = st.date ? dayData(st.date) : null, sd = st.date && st.slot ? slotData(st.date, st.slot) : null;
   document.querySelectorAll('.card[data-cap]').forEach(card => {
     const cap = card.dataset.cap, os = optsOf(cap), early = os.find(o => o.cutoffMin != null);
-    let tags = early ? `<span class="bdg">${esc(t('earlyBadge', { time: early.cutoffText }))}</span>` : '';
+    let tags = noteBadge(os);
     let off = false;
     if (day && os.some(o => (day.locked || []).indexOf(o.name) !== -1)) { tags += `<span class="bdg no">${esc(t('lockBadge'))}</span>`; off = true; }
     else if (sd) {
