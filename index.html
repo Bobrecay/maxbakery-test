@@ -63,6 +63,7 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
 .fld{display:block;margin:10px 0}.fld>span{display:block;font-size:13px;font-weight:600;color:var(--mu);margin-bottom:4px}
 .fld input,.fld textarea{width:100%;font:inherit;font-size:16px;padding:12px;border:1.5px solid #d9cdb0;border-radius:10px;background:#fff;color:var(--ink)}
+.fld textarea{resize:none}
 .fld.bad input{border-color:var(--almost);background:#fff5f3}
 .chk{display:flex;gap:10px;align-items:flex-start;margin:12px 0;font-size:14px;line-height:1.4;cursor:pointer}.chk input{width:20px;height:20px;margin-top:1px;accent-color:var(--m);flex:none}
 .sr{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #e0d4b6;font-size:15px}
@@ -90,7 +91,7 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
 @media(max-width:760px){
  .notes{grid-template-columns:1fr}
  .grid{grid-template-columns:66px repeat(var(--n,7),calc((100vw - 28px - 32px - 66px - 10px)/2))}
- .gt{font-size:11px}.gt small{display:block;font-size:10px}.gc{min-height:48px;font-size:13px}.swipe{display:block}
+ .gt{font-size:11px}.gt small{display:block;font-size:10px}.gc{min-height:48px;font-size:13px}.swipe{display:block}.gw{scrollbar-width:none}.gw::-webkit-scrollbar{display:none}
  .two{grid-template-columns:1fr}.items{grid-template-columns:1fr 1fr;gap:10px}.card h3{font-size:14px}.vr{flex-wrap:wrap}.stp button{width:32px;height:32px}.stp input{width:28px}
  header h1{font-size:19px}.btn{padding:13px 16px}
 }
