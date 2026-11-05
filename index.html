@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Max Bakery — Pre-Order</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--m:#6b1a1a;--dm:#4a0e0e;--g:#c9a84c;--g2:#e8cc7a;--cr:#faf3e0;--ink:#2c1810;--mu:#654638;--ow:#fffdf8;--line:#e6dcc0;
+ --open:#2e7d4f;--fill:#c98a00;--almost:#b3382c;--full:#9a948c}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--cr);color:var(--ink);font-family:Roboto,-apple-system,"Segoe UI","PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+header{background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header h1{margin:0;font:700 22px Georgia,serif;color:var(--m)}header small{display:block;color:var(--mu);font-size:12px}
+.lang{display:flex;gap:4px}.lang button{border:1px solid var(--m);background:#fff;color:var(--m);border-radius:999px;padding:5px 13px;font-size:13px}.lang button.on{background:var(--g);border-color:var(--g);color:var(--dm);font-weight:700}
+.wrap{max-width:1080px;margin:0 auto;padding:14px 14px 140px}
+.notes{display:grid;gap:8px;grid-template-columns:1fr 1fr}
+.note{background:#fff6dc;border:1px solid var(--g);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.4}
+.note b{color:var(--m)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px}
+h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}.ph span{color:var(--mu);font-size:14px}
+.dots{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin:4px 0 8px}.dots i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.pickline{background:#faf3e0;border-radius:10px;padding:8px 12px;font-size:14px;margin-bottom:8px;display:flex;gap:8px;align-items:center}
+/* grid */
+.gw{overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-left:70px;-webkit-overflow-scrolling:touch}
+.grid{width:max-content;min-width:100%;display:grid;grid-template-columns:78px repeat(var(--n,7),1fr);gap:5px}
+.gt{position:sticky;left:0;z-index:2;background:#fff;font-size:12px;color:var(--mu);display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding-right:6px;line-height:1.25}
+.gt small{font-size:10px;opacity:.75}
+.gh{scroll-snap-align:start;text-align:center;padding:6px 2px;font-size:13px;background:var(--cr);border-radius:8px}.gh b{display:block;font-size:17px;color:var(--m)}.gh small{font-size:11px;color:var(--mu)}
+.gh.x{background:#eee;color:#999}.gh.x b,.gh.x small{color:#999}
+.gc{border:0;border-radius:8px;color:#fff;font-size:12px;font-weight:700;min-height:46px;padding:2px;position:relative}
+.gc.s-open{background:var(--open)}.gc.s-filling{background:var(--fill)}.gc.s-almost{background:var(--almost)}.gc.s-full{background:#e4e0d8;color:#8a847c}
+.gc.xx{background:repeating-linear-gradient(45deg,#eee,#eee 6px,#e4e4e4 6px,#e4e4e4 12px);color:#bbb}
+.gc.ld{background:#efe9d8;color:#b9ad90}
+.gc.sel{outline:3px solid var(--dm);outline-offset:1px}
+.gc.busy::after{content:"";position:absolute;inset:0;margin:auto;width:16px;height:16px;border:2px solid #fff6;border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.swipe{display:none;text-align:center;font-size:13px;color:var(--mu);margin-top:8px}
+/* items */
+.sec{margin:16px 0 6px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
+.sec small{text-transform:none;letter-spacing:0;font-weight:500;display:block;margin-top:2px;font-size:13px;color:var(--mu)}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--ow);display:flex;flex-direction:column}
+.card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#efe9d8}
+.card .in{padding:10px 12px 12px;display:flex;flex-direction:column;gap:2px;flex:1}
+.card h3{margin:0;font-size:16px;line-height:1.25}
+.tags{min-height:0}.bdg{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;margin:3px 4px 0 0;background:#f3dede;color:var(--m)}
+.bdg.fast{background:#fff0cf;color:#8a5a00}.bdg.no{background:#eee;color:#6b655d}
+.card.off{opacity:.62}
+.vr{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:14px}.vr .pl{color:var(--mu)}.vr .pl b{color:var(--ink)}
+.stp{display:flex;align-items:center;gap:2px;background:#f6efdc;border-radius:999px;padding:3px;flex:none}
+.stp button{width:36px;height:36px;border-radius:50%;border:0;background:#fff;color:var(--m);font-size:22px;line-height:1;box-shadow:0 1px 2px #0002;padding:0}
+.stp input{width:34px;border:0;background:transparent;text-align:center;font:700 16px inherit;color:var(--ink);padding:0;-moz-appearance:textfield}
+.stp input::-webkit-outer-spin-button,.stp input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.stp.on{background:var(--m)}.stp.on input{color:#fff}
+/* form */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.fld{display:block;margin:10px 0}.fld>span{display:block;font-size:13px;font-weight:600;color:var(--mu);margin-bottom:4px}
+.fld input,.fld textarea{width:100%;font:inherit;font-size:16px;padding:12px;border:1.5px solid #d9cdb0;border-radius:10px;background:#fff;color:var(--ink)}
+.fld.bad input{border-color:var(--almost);background:#fff5f3}
+.chk{display:flex;gap:10px;align-items:flex-start;margin:12px 0;font-size:14px;line-height:1.4;cursor:pointer}.chk input{width:20px;height:20px;margin-top:1px;accent-color:var(--m);flex:none}
+.sr{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #e0d4b6;font-size:15px}
+.sr.tot{border-bottom:0;padding-top:12px;font-size:17px}.sr.tot b{color:var(--m);font-size:20px}
+.disc{color:var(--open);font-size:13px;margin:4px 0}
+.fine{font-size:12px;color:var(--mu);line-height:1.45;margin-top:6px}
+.empty{color:var(--mu);font-size:14px;padding:8px 0}
+/* bar */
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px #0001;z-index:20}
+.bar .in{max-width:1080px;margin:auto;display:flex;align-items:center;gap:12px}
+.bar .tl{flex:1;color:var(--mu);font-size:13px;min-width:0}.bar .tl b{display:block;color:var(--m);font-size:20px}
+.btn{background:var(--m);color:#fff;border:0;border-radius:12px;padding:14px 22px;font-weight:700;font-size:16px}
+.btn.gold{background:var(--g);color:var(--dm)}.btn.ghost{background:#fff;color:var(--m);border:1.5px solid var(--m)}.btn.danger{background:#fff;color:#b3382c;border:1.5px solid #b3382c}
+.btn:disabled{opacity:.5}
+/* modal */
+.ov{position:fixed;inset:0;background:#2c181099;display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
+.md{background:var(--ow);border-radius:16px;max-width:440px;width:100%;padding:20px;max-height:86vh;overflow:auto;box-shadow:0 12px 40px #0005}
+.md h3{margin:0 0 8px;font:700 20px Georgia,serif;color:var(--m)}.md p{margin:0 0 8px;line-height:1.5;font-size:15px}
+.md .sug{display:flex;flex-direction:column;gap:8px;margin:10px 0 2px}
+.md .sug button{border:1.5px solid var(--m);background:#fff;color:var(--m);border-radius:10px;padding:11px 12px;text-align:left;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.md .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:flex-end}
+.md .btns .btn{padding:11px 18px;font-size:15px}
+.thx{text-align:center;padding:26px 12px}.thx .big{font-size:52px}.thx h2{margin:6px 0}.thx .box{text-align:left;max-width:460px;margin:14px auto 0}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #fff6;border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@media(max-width:760px){
+ .notes{grid-template-columns:1fr}
+ .grid{grid-template-columns:66px repeat(var(--n,7),calc((100vw - 28px - 32px - 66px - 10px)/2))}
+ .gt{font-size:11px}.gt small{display:none}.gc{min-height:48px;font-size:13px}.swipe{display:block}
+ .two{grid-template-columns:1fr}.items{grid-template-columns:1fr 1fr;gap:10px}.card h3{font-size:14px}.vr{flex-wrap:wrap}.stp button{width:32px;height:32px}.stp input{width:28px}
+ header h1{font-size:19px}.btn{padding:13px 16px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modalRoot"></div>
+<script>
+/* ===================== CONFIG ===================== */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzrOx1TGIPndnw4v7MNdDavlQEQ4-EMAPNc0i-gkNE-EFQBCX2dWjQ5oYLUGxRfEcY4sw/exec';
+const IMG = {};                      // photos load from the images/ folder next to this file
+const DEFAULT_CFG = {"options":[{"name":"Pineapple Bun","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Pineapple Bun","units":1,"regular":true,"loaf":false,"zh":"菠蘿包","image":"ai-pineapple-bun","short":"P"},{"name":"Sausage Bun","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Sausage Bun","units":1,"regular":true,"loaf":false,"zh":"腸仔包","image":"ai-sausage-bun","short":"S"},{"name":"Ham & Cheese Bun","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Ham & Cheese Bun","units":1,"regular":true,"loaf":false,"zh":"火腿芝士包","image":"ham-cheese-bun","short":"H"},{"name":"Coconut Buttercream Bun","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Coconut Buttercream Bun","units":1,"regular":true,"loaf":false,"zh":"椰絲奶油包","image":"ai-coconut-buttercream-bun","short":"B"},{"name":"Cocktail Bun","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Cocktail Bun","units":1,"regular":true,"loaf":false,"zh":"雞尾包","image":"ai-cocktail-bun","short":"C"},{"name":"Coconut Pineapple Bun","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Coconut Pineapple Bun","units":1,"regular":true,"loaf":false,"zh":"椰絲菠蘿包","image":"ai-coconut-pineapple-bun","short":"PC"},{"name":"Custard Bun","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Custard Bun","units":1,"regular":true,"loaf":false,"zh":"奶黃包","image":"ai-custard-bun","short":"CT"},{"name":"Custard Pineapple Bun","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Custard Pineapple Bun","units":1,"regular":true,"loaf":false,"zh":"奶黃菠蘿包","image":"ai-custard-pineapple-bun","short":"CTP"},{"name":"Coconut Twist","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Coconut Twist","units":1,"regular":true,"loaf":false,"zh":"椰絲扭包","image":"coconut-twist","short":"C-R"},{"name":"Raisin Twist","cost":2.2,"cutoffMin":null,"cutoffText":"","capItem":"Raisin Twist","units":1,"regular":true,"loaf":false,"zh":"提子扭包","image":"raisin-twist","short":"R"},{"name":"Mini Dinner Bun - Dozen","cost":10,"cutoffMin":null,"cutoffText":"","capItem":"Mini Dinner Bun","units":12,"regular":false,"loaf":false,"zh":"迷你餐包 - 一打","image":"ai-dinner-bun","short":"M"},{"name":"Mini Dinner Bun - Half","cost":6,"cutoffMin":null,"cutoffText":"","capItem":"Mini Dinner Bun","units":6,"regular":false,"loaf":false,"zh":"迷你餐包 - 半打","image":"ai-dinner-bun","short":"MH"},{"name":"Salty Dinner Bun","cost":2.2,"cutoffMin":1290,"cutoffText":"9:30 PM","capItem":"Salty Dinner Bun","units":1,"regular":false,"loaf":false,"zh":"鹹餐包","image":"salty-dinner-buns","short":"SD"},{"name":"Mini Cocktail Loaf","cost":5,"cutoffMin":null,"cutoffText":"","capItem":"Mini Cocktail Loaf","units":1,"regular":false,"loaf":false,"zh":"迷你雞尾麵包","image":"mini-cocktail-loaf","short":"MCL"},{"name":"White Loaf - Whole","cost":11,"cutoffMin":null,"cutoffText":"","capItem":"White Loaf","units":1,"regular":false,"loaf":true,"zh":"白麵包 - 整條","image":"ai-white-loaf","short":"WLW"},{"name":"White Loaf - Half","cost":6,"cutoffMin":null,"cutoffText":"","capItem":"White Loaf","units":0.5,"regular":false,"loaf":true,"zh":"白麵包 - 半條","image":"ai-white-loaf","short":"WLH"},{"name":"Whole Wheat Loaf - Whole","cost":13,"cutoffMin":1290,"cutoffText":"9:30 PM","capItem":"Whole Wheat Loaf","units":1,"regular":false,"loaf":true,"zh":"全麥麵包 - 整條","image":"ai-whole-wheat-loaf","short":"WWW"},{"name":"Whole Wheat Loaf - Half","cost":7,"cutoffMin":1290,"cutoffText":"9:30 PM","capItem":"Whole Wheat Loaf","units":0.5,"regular":false,"loaf":true,"zh":"全麥麵包 - 半條","image":"ai-whole-wheat-loaf","short":"WWH"}],"capItems":["Pineapple Bun","Sausage Bun","Ham & Cheese Bun","Coconut Buttercream Bun","Cocktail Bun","Coconut Pineapple Bun","Custard Bun","Custard Pineapple Bun","Coconut Twist","Raisin Twist","Mini Dinner Bun","Salty Dinner Bun","Mini Cocktail Loaf","White Loaf","Whole Wheat Loaf"],"slots":["11:00 AM - 12:00 PM","12:00 PM - 1:00 PM","1:00 PM - 2:00 PM","2:00 PM - 3:00 PM","3:00 PM - 4:00 PM","4:00 PM - 5:00 PM","5:00 PM - 6:00 PM","6:00 PM - 7:00 PM","7:00 PM - 8:00 PM"],"settings":{"discountMinQty":6,"discountPrice":2,"maxLoaves":2,"phone":"647-528-7230","daysShown":7,"closedWeekdays":[2]},"taxNote":{"en":"Estimated total. Tax, if any, and any card surcharge are added at the register, depending on how you pay. Payment is in store at pickup.","zh":"預計總額。稅項及信用卡附加費將於店內付款時，按付款方式另計。請於取貨時在店內付款。"}};         // shown instantly; replaced by the live sheet data when it loads
+
+/* ===================== TEXT ===================== */
+const S = {
+ en:{brand:'Max Bakery',sub:'Pre-order · Markham, ON',
+  noteDate:'Please place orders at least 1 day in advance. Pre-orders are open for the next 7 days. We are closed on Tuesdays.',
+  noteLimited:'Quantities are limited for each time slot. For large orders, please text Max at {phone}.',
+  noteEarly:'{items}: order by {time} the night before pickup.',
+  pickTitle:'Pick a day and time',next7:'Next 7 days',open:'Open',filling:'Filling Up',almost:'Almost Full',full:'Full',closed:'Closed',closedT:'Closed Tuesdays',
+  noTime:'No time selected yet',selected:'Selected',swipe:'← Swipe to see more days →',loading:'Loading availability…',
+  itemsTitle:'Choose your items',secBuns:'Buns',secDinner:'Dinner buns',secLoaves:'Loaves',
+  discNote:'Buy {n} or more regular buns and pay {price} each instead of {cost}.',
+  earlyBadge:'Order by {time} the day before',fastBadge:'Selling fast — order soon',noBadge:'Not available at this time. Try another time.',lockBadge:'Cutoff has passed for this date',
+  each:'each',detailsTitle:'Your details',name:'Name',email:'Email',phone:'Phone',notes:'Notes (optional)',
+  reminder:'Email me a reminder at 7:00 AM on the morning of my pickup',
+  reviewTitle:'Order summary',noItems:'No items yet',total:'Estimated total',discApplied:'Discount applied: {n}+ regular buns at {price} each',
+  place:'Place order',save:'Save changes',cancelOrder:'Cancel this order',sending:'Sending…',
+  pickup:'Pickup',itemsWord:'items',
+  ok:'OK',close:'Close',cont:'Continue',back:'Go back',keep:'Keep my order',yesCancel:'Yes, cancel it',retry:'Try again',
+  mHeads:'Heads up',mCheck:'Please check your order',mFull:'That time is full',mClosed:'We are closed',mLarge:'Large order?',mBusy:'Very popular right now',mLocked:'Past the cutoff',mDate:'Date not available',mNet:'Connection problem',mMerge:'You already have an order',mCancel:'Cancel this order?',mFix:'Almost there',
+  closedDay:'We are closed on Tuesdays. Please choose another day.',
+  fullMsg:'That time is full. Here are other times that are open:',
+  otherTimes:'Other times that work:',
+  large:'That is a big order! For large orders of {items}, please text Max at {phone} and he will help you.',
+  popular:'That time already has a lot of pre-orders for {items}. For a larger order, text Max at {phone}, or try one of these times:',
+  popularNoSug:'That time already has a lot of pre-orders for {items}. Please try another time or day, or text Max at {phone} for a larger order.',
+  cartNoFit:'That time does not have enough of: {items}. Try one of these times for your whole order:',
+  cartNoFitNone:'That time does not have enough of: {items}. Please pick another time, reduce the amount, or text Max at {phone}.',
+  loafLimit:'Loaf orders are limited to {n} per order (a half loaf counts as 0.5). For more, please text Max at {phone}.',
+  lockedMsg:'{items} must be ordered by {time} the night before pickup, and that time has passed for this date. Please choose a later date, or text Max at {phone}.',
+  lockedChange:'{items} can no longer be changed because the cutoff has passed. Please text Max at {phone}.',
+  needTime:'Please pick a day and time first.',needItems:'Please add at least one item.',needFields:'Please complete the highlighted fields (name, a valid email and a valid phone number).',
+  dPast:'Orders must be placed at least 1 day in advance. Please choose a later date.',dFar:'That date is too far ahead. Please choose one of the dates shown.',
+  busyServer:'The server is busy right now. Please try again in a moment.',
+  netErr:'We could not reach the order system. Please check your connection and try again.',
+  closedEdit:'This order can no longer be changed online. Please text Max at {phone}.',
+  notFound:'We could not find this order. It may have already been cancelled.',
+  mergeMsg:'You already have an order for this pickup time. The items you chose will be added to it. Continue?',
+  cancelConfirm:'Are you sure you want to cancel this order?',
+  cantCancel:'To cancel this order, please text Max at {phone}.',
+  thanks:'Thank you!',thanksSub:'Your order is confirmed. A confirmation email (English and 中文) is on its way.',
+  updated:'Order updated',updatedSub:'Your changes are saved. A new confirmation email is on its way.',
+  cancelled:'Order cancelled',cancelledSub:'Your order has been cancelled. A confirmation email is on its way.',
+  reminderOn:'We will email you a reminder at 7:00 AM on pickup day.',newOrder:'Place another order',
+  manageTitle:'Change your order',manageFor:'Order for {name}',loadingOrder:'Loading your order…',
+  sameDayNote:'Orders cannot be changed or cancelled on the day of pickup.',
+  txtMax:'Questions or large orders: text Max at {phone}'},
+ zh:{brand:'Max Bakery',sub:'預訂 · 萬錦',
+  noteDate:'請至少提前 1 天下單。現時可預訂未來 7 天。逢星期二休息。',
+  noteLimited:'每個時段的數量有限。大量訂單請發短訊給 Max：{phone}。',
+  noteEarly:'{items}：請於取貨前一天晚上 {time} 前訂購。',
+  pickTitle:'選擇日期及時間',next7:'未來 7 天',open:'有位',filling:'快滿',almost:'將滿',full:'已滿',closed:'休息',closedT:'逢星期二休息',
+  noTime:'尚未選擇時間',selected:'已選',swipe:'← 左右滑動查看更多日期 →',loading:'正在載入…',
+  itemsTitle:'選擇產品',secBuns:'麵包',secDinner:'餐包',secLoaves:'方包',
+  discNote:'購買 {n} 個或以上普通麵包，每個 {price}（原價 {cost}）。',
+  earlyBadge:'須於前一天 {time} 前訂購',fastBadge:'即將售罄，請盡快訂購',noBadge:'此時段暫不供應，請選擇其他時間。',lockBadge:'此日期已過截單時間',
+  each:'每個',detailsTitle:'您的資料',name:'姓名',email:'電郵',phone:'電話',notes:'備註（可選）',
+  reminder:'取貨當天早上 7:00 以電郵提醒我',
+  reviewTitle:'訂單摘要',noItems:'尚未選擇產品',total:'預計總額',discApplied:'已享優惠：普通麵包滿 {n} 個，每個 {price}',
+  place:'提交訂單',save:'儲存更改',cancelOrder:'取消此訂單',sending:'傳送中…',
+  pickup:'取貨',itemsWord:'件',
+  ok:'好',close:'關閉',cont:'繼續',back:'返回',keep:'保留訂單',yesCancel:'確定取消',retry:'再試一次',
+  mHeads:'請注意',mCheck:'請檢查訂單',mFull:'此時段已滿',mClosed:'休息日',mLarge:'大量訂單？',mBusy:'此時段非常熱門',mLocked:'已過截單時間',mDate:'日期不適用',mNet:'連線問題',mMerge:'您已有訂單',mCancel:'取消此訂單？',mFix:'快完成了',
+  closedDay:'逢星期二休息，請選擇其他日子。',
+  fullMsg:'此時段已滿，以下時段仍有位：',
+  otherTimes:'以下時段適合：',
+  large:'這是大量訂單！{items} 的大量訂單，請發短訊給 Max：{phone}，他會為您安排。',
+  popular:'此時段的 {items} 已有很多預訂。如需更多，請發短訊給 Max：{phone}，或選擇以下時段：',
+  popularNoSug:'此時段的 {items} 已有很多預訂。請選擇其他時間或日期，或發短訊給 Max：{phone}。',
+  cartNoFit:'此時段的 {items} 數量不足。以下時段可滿足您的整張訂單：',
+  cartNoFitNone:'此時段的 {items} 數量不足。請選擇其他時間、減少數量，或發短訊給 Max：{phone}。',
+  loafLimit:'每張訂單最多 {n} 條方包（半條算 0.5）。如需更多，請發短訊給 Max：{phone}。',
+  lockedMsg:'{items} 須於取貨前一天晚上 {time} 前訂購，此日期已過時間。請選擇較後日期，或發短訊給 Max：{phone}。',
+  lockedChange:'{items} 已過截單時間，無法更改。請發短訊給 Max：{phone}。',
+  needTime:'請先選擇日期及時間。',needItems:'請至少選擇一項產品。',needFields:'請填寫標示的欄位（姓名、有效電郵及有效電話）。',
+  dPast:'請至少提前 1 天下單，請選擇較後日期。',dFar:'日期太遠，請選擇顯示的日期。',
+  busyServer:'伺服器繁忙，請稍後再試。',
+  netErr:'無法連接訂購系統，請檢查網絡後再試。',
+  closedEdit:'此訂單無法在網上更改。請發短訊給 Max：{phone}。',
+  notFound:'找不到此訂單，可能已被取消。',
+  mergeMsg:'您在此取貨時間已有訂單，您選擇的產品會加入該訂單。是否繼續？',
+  cancelConfirm:'確定要取消此訂單嗎？',
+  cantCancel:'如需取消此訂單，請發短訊給 Max：{phone}。',
+  thanks:'多謝您！',thanksSub:'訂單已確認。確認電郵（English 及中文）正在寄出。',
+  updated:'訂單已更新',updatedSub:'更改已儲存，新的確認電郵正在寄出。',
+  cancelled:'訂單已取消',cancelledSub:'您的訂單已取消，確認電郵正在寄出。',
+  reminderOn:'取貨當天早上 7:00 我們會以電郵提醒您。',newOrder:'再下一張訂單',
+  manageTitle:'更改訂單',manageFor:'{name} 的訂單',loadingOrder:'正在載入訂單…',
+  sameDayNote:'取貨當天無法更改或取消訂單。',
+  txtMax:'查詢或大量訂單：請發短訊給 Max {phone}'}
+};
+
+/* ===================== STATE ===================== */
+const st = {
+ cfg: DEFAULT_CFG, week: null, lang: 'en',
+ date: null, slot: null, q: {}, name: '', email: '', phone: '', notes: '', reminder: false, err: {},
+ mode: 'new', token: null, order: null, screen: 'form', busy: false, checking: false, result: null
+};
+const t = (k, v) => { let s = (S[st.lang][k] ?? S.en[k] ?? k); if (v) for (const x in v) s = s.split('{' + x + '}').join(v[x]); return s; };
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const money = n => '$' + (Math.round(n * 100) / 100).toFixed(2);
+const phone = () => st.cfg.settings.phone;
+
+/* ===================== MENU HELPERS ===================== */
+const opts = () => st.cfg.options;
+const optBy = n => opts().find(o => o.name === n);
+const capNames = () => st.cfg.capItems;
+const optsOf = cap => opts().filter(o => o.capItem === cap);
+function itemName(cap) {
+  const o = optsOf(cap)[0];
+  if (st.lang === 'zh' && o && o.zh) return o.zh.split(' - ')[0];
+  return cap;
+}
+function variantLabel(o) {
+  const en = o.name.split(' - ')[1] || '';
+  if (!en) return '';
+  if (st.lang === 'zh' && o.zh && o.zh.split(' - ')[1]) return o.zh.split(' - ')[1];
+  return en;
+}
+const imgSrc = stem => IMG[stem] || ('images/' + stem + '.webp');
+const qty = n => st.q[n] || 0;
+function cartQty() { const c = {}; opts().forEach(o => { if (qty(o.name) > 0) c[o.name] = qty(o.name); }); return c; }
+function unitsByCap(cart) { const u = {}; opts().forEach(o => { const q = cart[o.name] || 0; if (q > 0) u[o.capItem] = (u[o.capItem] || 0) + q * o.units; }); return u; }
+function loafUnits(cart) { let n = 0; opts().forEach(o => { if (o.loaf) n += (cart[o.name] || 0) * o.units; }); return n; }
+function totalCount() { return opts().reduce((s, o) => s + qty(o.name), 0); }
+function price(cart) {
+  const S0 = st.cfg.settings; let reg = 0;
+  opts().forEach(o => { if (o.regular) reg += cart[o.name] || 0; });
+  const disc = reg >= S0.discountMinQty; let total = 0; const lines = [];
+  opts().forEach(o => { const q = cart[o.name] || 0; if (q <= 0) return; const unit = o.regular && disc ? S0.discountPrice : o.cost; total += unit * q; lines.push({ o, q, unit, line: unit * q }); });
+  return { total: Math.round(total * 100) / 100, disc, lines, reg };
+}
+function cutoffTime() { const o = opts().find(x => x.cutoffMin != null); return o ? o.cutoffText : '9:30 PM'; }
+function earlyCapNames() { const s = []; opts().forEach(o => { if (o.cutoffMin != null && s.indexOf(o.capItem) === -1) s.push(o.capItem); }); return s; }
+
+/* ===================== WEEK DATA ===================== */
+function daysList() {
+  if (st.week) return st.week.days;
+  const out = [], b = new Date(); b.setHours(0, 0, 0, 0);
+  for (let i = 1; i <= (st.cfg.settings.daysShown || 7); i++) {
+    const d = new Date(b); d.setDate(b.getDate() + i);
+    const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    out.push({ date: k, closed: (st.cfg.settings.closedWeekdays || [2]).indexOf(d.getDay()) !== -1, slots: [], locked: [] });
+  }
+  return out;
+}
+const dayData = k => daysList().find(d => d.date === k);
+const slotData = (k, label) => { const d = dayData(k); return d && d.slots ? d.slots.find(s => s.slot === label) : null; };
+const dObj = k => new Date(k + 'T12:00:00');
+const locale = () => st.lang === 'zh' ? 'zh-HK' : 'en-CA';
+const fmtDow = k => dObj(k).toLocaleDateString(locale(), { weekday: 'short' });
+const fmtMon = k => dObj(k).toLocaleDateString(locale(), { month: 'short', day: 'numeric' });
+const fmtLong = k => dObj(k).toLocaleDateString(locale(), { weekday: 'long', month: 'long', day: 'numeric' });
+const slotStart = l => l.split(' - ')[0];
+const slotEnd = l => l.split(' - ')[1];
+const pickupTxt = () => st.date && st.slot ? fmtLong(st.date) + ' · ' + slotStart(st.slot) + ' – ' + slotEnd(st.slot) : '';
+
+/* ===================== NETWORK ===================== */
+const SAFE = ['getFormConfig', 'getWeekAvailability', 'getOrderForCancel', 'checkOrderExists'];
+async function fetchOnce(body, ms) {
+  const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ctl.signal });
+    return await r.json();
+  } finally { clearTimeout(tm); }
+}
+async function call(action, payload, ms) {
+  const body = Object.assign({ action }, payload || {});
+  try { return await fetchOnce(body, ms || 25000); }
+  catch (e) {
+    if (SAFE.indexOf(action) !== -1) { try { return await fetchOnce(body, ms || 25000); } catch (e2) { /* fall through */ } }
+    return { error: 'network', network: true };
+  }
+}
+
+/* ===================== MODAL ===================== */
+function modal(o) {
+  return new Promise(res => {
+    const root = $('modalRoot');
+    const btns = (o.buttons || [{ label: t('ok'), cls: 'btn', v: true }]).map((b, i) => `<button class="${b.cls || 'btn'}" data-i="${i}">${esc(b.label)}</button>`).join('');
+    const sug = (o.sug || []).map((s, i) => `<button data-s="${i}"><span>${esc(s.label)}</span><span>›</span></button>`).join('');
+    root.innerHTML = `<div class="ov" id="ov"><div class="md" role="dialog" aria-modal="true"><h3>${esc(o.title || t('mHeads'))}</h3>${(o.paras || [o.text]).filter(Boolean).map(p => `<p>${esc(p)}</p>`).join('')}${sug ? `<div class="sug">${sug}</div>` : ''}<div class="btns">${btns}</div></div></div>`;
+    const done = v => { root.innerHTML = ''; document.removeEventListener('keydown', onKey); res(v); };
+    const onKey = e => { if (e.key === 'Escape') done(null); };
+    document.addEventListener('keydown', onKey);
+    root.querySelectorAll('[data-i]').forEach(b => b.onclick = () => done((o.buttons || [{ v: true }])[+b.dataset.i].v));
+    root.querySelectorAll('[data-s]').forEach(b => b.onclick = () => done({ suggest: o.sug[+b.dataset.s] }));
+    const ov = $('ov'); ov.onclick = e => { if (e.target === ov) done(null); };
+    const f = root.querySelector('.btns button'); if (f) f.focus();
+  });
+}
+async function info(title, text, sug) {
+  const r = await modal({ title, text, sug, buttons: [{ label: t('close'), cls: 'btn ghost', v: null }] });
+  if (r && r.suggest) await applySuggestion(r.suggest);
+}
+async function applySuggestion(s) { await selectSlot(s.date, s.slot, true); }
+
+/* ===================== SUGGESTIONS ===================== */
+// Slots that fit the whole cart, same day first (closest time), then later days.
+function suggest(cart, fromDate, fromSlot, max) {
+  max = max || 3; const units = unitsByCap(cart); const out = [];
+  const startMin = l => { const m = /(\d+):(\d+) (AM|PM)/.exec(slotStart(l)); let h = +m[1] % 12; if (m[3] === 'PM') h += 12; return h * 60 + +m[2]; };
+  const refMin = fromSlot ? startMin(fromSlot) : 0;
+  const days = daysList().filter(d => !d.closed && d.slots && d.slots.length);
+  const ordered = days.slice().sort((a, b) => (a.date === fromDate ? -1 : b.date === fromDate ? 1 : a.date < b.date ? -1 : 1));
+  for (const d of ordered) {
+    const lockedHit = (d.locked || []).some(n => cart[n] > 0);
+    if (lockedHit) continue;
+    const cands = d.slots.filter(s => s.status !== 'full' && !(d.date === fromDate && s.slot === fromSlot) && fits(units, s)).sort((a, b) => Math.abs(startMin(a.slot) - refMin) - Math.abs(startMin(b.slot) - refMin));
+    for (const s of cands) { out.push({ date: d.date, slot: s.slot, label: fmtDow(d.date) + ' ' + fmtMon(d.date) + ' · ' + slotStart(s.slot) }); if (out.length >= max) return out; }
+  }
+  return out;
+}
+function fits(units, sd) { return Object.keys(units).every(c => sd.items[c] && units[c] <= sd.items[c].remaining + 1e-9); }
+function violations(units, sd) { return Object.keys(units).filter(c => !(sd.items[c] && units[c] <= sd.items[c].remaining + 1e-9)); }
+function maxCap(cap) { let m = 0; daysList().forEach(d => (d.slots || []).forEach(s => { if (s.items[cap]) m = Math.max(m, s.items[cap].cap); })); return m; }
+
+/* ===================== WEEK REFRESH ===================== */
+let lastWeekAt = 0;
+async function refreshWeek(wait, ms) {
+  const r = await call('getWeekAvailability', { excludeToken: st.mode === 'manage' ? st.token : undefined }, ms || 12000);
+  if (r && r.days) { st.week = r; lastWeekAt = Date.now(); renderGrid(); updateItemStates(); }
+  return !!(r && r.days);
+}
+
+/* ===================== SLOT SELECTION ===================== */
+async function selectSlot(dateK, label, skipFresh) {
+  if (st.checking) return; st.checking = true; markBusy(dateK, label, true);
+  if (!skipFresh) await refreshWeek(true, 8000);
+  else if (Date.now() - lastWeekAt > 5000) await refreshWeek(true, 8000);
+  st.checking = false; markBusy(dateK, label, false);
+  const day = dayData(dateK), sd = slotData(dateK, label);
+  if (!day || day.closed) return info(t('mClosed'), t('closedDay'));
+  if (!sd) return info(t('mHeads'), t('netErr'));
+  const cart = cartQty();
+  if (sd.status === 'full') { const sg = suggest(cart, dateK, label); return info(t('mFull'), sg.length ? t('fullMsg') : t('popularNoSug', { items: '', phone: phone() }), sg); }
+  const lockedHit = (day.locked || []).filter(n => cart[n] > 0);
+  if (lockedHit.length) return info(t('mLocked'), t('lockedMsg', { items: lockedHit.map(n => itemName(optBy(n).capItem) + (variantLabel(optBy(n)) ? ' (' + variantLabel(optBy(n)) + ')' : '')).join(', '), time: cutoffTime(), phone: phone() }));
+  if (st.mode === 'manage' && st.order && st.order.lockedOptions && st.order.lockedOptions.some(n => (st.order.items[n] || 0) > 0) && dateK !== st.order.pickupDate) {
+    return info(t('mLocked'), t('lockedChange', { items: earlyCapNames().map(itemName).join(', '), phone: phone() }));
+  }
+  const bad = violations(unitsByCap(cart), sd);
+  if (bad.length) {
+    const sg = suggest(cart, dateK, label);
+    return info(t('mBusy'), sg.length ? t('cartNoFit', { items: bad.map(itemName).join(', ') }) : t('cartNoFitNone', { items: bad.map(itemName).join(', '), phone: phone() }), sg);
+  }
+  st.date = dateK; st.slot = label;
+  renderGrid(); updateItemStates(); renderSummary(); renderBar();
+}
+function markBusy(d, l, on) { const el = document.querySelector(`.gc[data-d="${d}"][data-s="${CSS.escape(l)}"]`); if (el) el.classList.toggle('busy', on); }
+
+/* ===================== QUANTITY CHANGES ===================== */
+async function trySet(name, n) {
+  const o = optBy(name), cur = qty(name);
+  n = Math.max(0, Math.min(999, Math.floor(Number(n) || 0)));
+  if (n === cur) return syncQty(name);
+  const day = st.date ? dayData(st.date) : null;
+  const orig = st.mode === 'manage' && st.order ? (st.order.items[name] || 0) : 0;
+  if (day && (day.locked || []).indexOf(name) !== -1 && n !== orig) {
+    syncQty(name);
+    return info(t('mLocked'), (st.mode === 'manage' ? t('lockedChange', { items: itemName(o.capItem), phone: phone() }) : t('lockedMsg', { items: itemName(o.capItem), time: cutoffTime(), phone: phone() })));
+  }
+  if (n > cur) {
+    const next = Object.assign(cartQty(), { [name]: n });
+    if (o.loaf && loafUnits(next) > st.cfg.settings.maxLoaves + 1e-9) {
+      syncQty(name); return info(t('mLarge'), t('loafLimit', { n: st.cfg.settings.maxLoaves, phone: phone() }));
+    }
+    const units = unitsByCap(next), want = units[o.capItem];
+    if (st.date && st.slot && Date.now() - lastWeekAt > 20000) await refreshWeek(false, 6000);
+    const sd = st.date && st.slot ? slotData(st.date, st.slot) : null;
+    if (sd) {
+      const s = sd.items[o.capItem];
+      if (!s || want > s.remaining + 1e-9) {
+        syncQty(name);
+        const large = !s || want > s.cap + 1e-9;
+        if (large) return info(t('mLarge'), t('large', { items: itemName(o.capItem), phone: phone() }));
+        const sg = suggest(next, st.date, st.slot);
+        return info(t('mBusy'), sg.length ? t('popular', { items: itemName(o.capItem), phone: phone() }) : t('popularNoSug', { items: itemName(o.capItem), phone: phone() }), sg);
+      }
+    } else if (st.week && want > maxCap(o.capItem) + 1e-9) {
+      syncQty(name); return info(t('mLarge'), t('large', { items: itemName(o.capItem), phone: phone() }));
+    }
+  }
+  if (n === 0) delete st.q[name]; else st.q[name] = n;
+  syncQty(name); renderSummary(); renderBar();
+}
+function syncQty(name) {
+  document.querySelectorAll(`input[data-q="${CSS.escape(name)}"]`).forEach(i => { i.value = qty(name); i.closest('.stp').classList.toggle('on', qty(name) > 0); });
+}
+
+/* ===================== RENDER: GRID ===================== */
+function renderGrid() {
+  const host = $('gridHost'); if (!host) return;
+  const prev = host.querySelector('.gw'); const sl = prev ? prev.scrollLeft : 0;
+  const days = daysList();
+  let h = `<div class="gw"><div class="grid" style="--n:${days.length}"><div class="gt"></div>`;
+  days.forEach(d => { h += `<div class="gh ${d.closed ? 'x' : ''}">${esc(fmtDow(d.date))}<b>${dObj(d.date).getDate()}</b><small>${d.closed ? esc(t('closed')) : esc(dObj(d.date).toLocaleDateString(locale(), { month: 'short' }))}</small></div>`; });
+  st.cfg.slots.forEach(label => {
+    h += `<div class="gt">${esc(slotStart(label))}<small>– ${esc(slotEnd(label))}</small></div>`;
+    days.forEach(d => {
+      if (d.closed) { h += `<button class="gc xx" data-d="${d.date}" data-s="${esc(label)}" data-k="closed" aria-label="${esc(t('closed'))}">—</button>`; return; }
+      const sd = st.week ? slotData(d.date, label) : null;
+      if (!sd) { h += `<button class="gc ld" disabled>·</button>`; return; }
+      const sel = st.date === d.date && st.slot === label;
+      h += `<button class="gc s-${sd.status} ${sel ? 'sel' : ''}" data-d="${d.date}" data-s="${esc(label)}" data-k="slot">${sel ? '✓ ' : ''}${esc(t(sd.status))}</button>`;
+    });
+  });
+  h += '</div></div>';
+  host.innerHTML = h;
+  const gw = host.querySelector('.gw'); if (gw) gw.scrollLeft = sl;
+  const pl = $('pickLine'); if (pl) pl.innerHTML = st.date && st.slot ? `✅ <b>${esc(t('selected'))}:</b> ${esc(pickupTxt())}` : `<span style="color:var(--mu)">${esc(t('noTime'))}</span>`;
+}
+
+/* ===================== RENDER: ITEMS ===================== */
+function sectionOf(cap) { const o = optsOf(cap)[0]; if (/loaf/i.test(cap)) return 'loaves'; if (o && o.regular) return 'buns'; return 'dinner'; }
+function cardHtml(cap) {
+  const os = optsOf(cap); if (!os.length) return '';
+  const rows = os.map(o => {
+    const v = variantLabel(o), q = qty(o.name);
+    const priceTxt = o.regular ? `<b>${money(o.cost)}</b> ${esc(t('each'))}` : `${v ? esc(v) + ' ' : ''}<b>${money(o.cost)}</b>`;
+    return `<div class="vr"><span class="pl">${priceTxt}</span><div class="stp ${q > 0 ? 'on' : ''}"><button type="button" data-m="${esc(o.name)}" data-d="-1" aria-label="−">−</button><input type="number" inputmode="numeric" min="0" max="999" value="${q}" data-q="${esc(o.name)}" aria-label="${esc(itemName(cap))}"><button type="button" data-m="${esc(o.name)}" data-d="1" aria-label="+">+</button></div></div>`;
+  }).join('');
+  const early = os.find(o => o.cutoffMin != null);
+  return `<div class="card" data-cap="${esc(cap)}"><img src="${imgSrc(os[0].image)}" alt="" loading="lazy"><div class="in"><h3>${esc(itemName(cap))}</h3><div class="tags" data-tags>${early ? `<span class="bdg">${esc(t('earlyBadge', { time: early.cutoffText }))}</span>` : ''}</div>${rows}</div></div>`;
+}
+function renderItems() {
+  const host = $('itemsHost'); if (!host) return;
+  const S0 = st.cfg.settings, bun = optsOf(capNames().find(c => sectionOf(c) === 'buns'))[0];
+  const groups = { buns: [], dinner: [], loaves: [] };
+  capNames().forEach(c => groups[sectionOf(c)].push(c));
+  const sec = (key, title, extra) => groups[key].length ? `<div class="sec">${esc(title)}${extra ? `<small>${esc(extra)}</small>` : ''}</div><div class="items">${groups[key].map(cardHtml).join('')}</div>` : '';
+  host.innerHTML = sec('buns', t('secBuns'), t('discNote', { n: S0.discountMinQty, price: money(S0.discountPrice), cost: money(bun ? bun.cost : 2.2) })) + sec('dinner', t('secDinner')) + sec('loaves', t('secLoaves'));
+  updateItemStates();
+}
+function updateItemStates() {
+  const day = st.date ? dayData(st.date) : null, sd = st.date && st.slot ? slotData(st.date, st.slot) : null;
+  document.querySelectorAll('.card[data-cap]').forEach(card => {
+    const cap = card.dataset.cap, os = optsOf(cap), early = os.find(o => o.cutoffMin != null);
+    let tags = early ? `<span class="bdg">${esc(t('earlyBadge', { time: early.cutoffText }))}</span>` : '';
+    let off = false;
+    if (day && os.some(o => (day.locked || []).indexOf(o.name) !== -1)) { tags += `<span class="bdg no">${esc(t('lockBadge'))}</span>`; off = true; }
+    else if (sd) {
+      const s = sd.items[cap];
+      if (!s || s.remaining <= 0) { tags += `<span class="bdg no">${esc(t('noBadge'))}</span>`; off = true; }
+      else if (s.remaining / s.cap <= 0.25) tags += `<span class="bdg fast">${esc(t('fastBadge'))}</span>`;
+    }
+    card.classList.toggle('off', off);
+    const tg = card.querySelector('[data-tags]'); if (tg) tg.innerHTML = tags;
+  });
+}
+
+/* ===================== RENDER: SUMMARY / BAR ===================== */
+function renderSummary() {
+  const host = $('sumHost'); if (!host) return;
+  const p = price(cartQty());
+  const lines = p.lines.map(l => `<div class="sr"><span>${l.q} × ${esc(itemName(l.o.capItem))}${variantLabel(l.o) ? ' (' + esc(variantLabel(l.o)) + ')' : ''}</span><span>${money(l.line)}</span></div>`).join('');
+  host.innerHTML = `<div class="sr"><b>${esc(t('pickup'))}</b><span style="text-align:right">${st.date && st.slot ? esc(pickupTxt()) : '—'}</span></div>
+    ${lines || `<div class="empty">${esc(t('noItems'))}</div>`}
+    ${p.disc ? `<div class="disc">✓ ${esc(t('discApplied', { n: st.cfg.settings.discountMinQty, price: money(st.cfg.settings.discountPrice) }))}</div>` : ''}
+    <div class="sr tot"><b>${esc(t('total'))}</b><b>${money(p.total)}</b></div>
+    <div class="fine">${esc((st.cfg.taxNote || {})[st.lang] || '')}</div>`;
+}
+function renderBar() {
+  const host = $('barHost'); if (!host) return;
+  const p = price(cartQty()), n = totalCount();
+  const main = st.mode === 'manage'
+    ? `<button class="btn gold" id="btnMain">${esc(t('save'))}</button>`
+    : `<button class="btn gold" id="btnMain">${esc(t('place'))}</button>`;
+  const cancel = st.mode === 'manage' && st.order && st.order.editable ? `<button class="btn danger" id="btnCancel">${esc(t('cancelOrder'))}</button>` : '';
+  host.innerHTML = `<div class="in"><div class="tl"><span>${st.date && st.slot ? esc(fmtDow(st.date) + ' ' + fmtMon(st.date) + ' · ' + slotStart(st.slot)) : esc(t('noTime'))} · ${n} ${esc(t('itemsWord'))}</span><b>${money(p.total)}</b></div>${cancel}${main}</div>`;
+  $('btnMain').onclick = st.mode === 'manage' ? saveChanges : placeOrder;
+  if ($('btnCancel')) $('btnCancel').onclick = doCancel;
+}
+
+/* ===================== RENDER: PAGE ===================== */
+function langBtns() { return `<div class="lang"><button class="${st.lang === 'en' ? 'on' : ''}" data-lang="en">EN</button><button class="${st.lang === 'zh' ? 'on' : ''}" data-lang="zh">中文</button></div>`; }
+function header() { return `<header><div><h1>${esc(t('brand'))}</h1><small>${esc(t('sub'))}</small></div>${langBtns()}</header>`; }
+function fieldsHtml() {
+  const f = (k, l, type, ph) => `<label class="fld ${st.err[k] ? 'bad' : ''}"><span>${esc(t(l))}</span><input type="${type}" data-f="${k}" value="${esc(st[k])}" placeholder="${ph || ''}" autocomplete="${k === 'name' ? 'name' : k === 'phone' ? 'tel' : 'email'}"></label>`;
+  if (st.mode === 'manage') return `<p><b>${esc(t('manageFor', { name: st.order ? st.order.name : '' }))}</b></p><label class="fld"><span>${esc(t('notes'))}</span><textarea data-f="notes" rows="2">${esc(st.notes)}</textarea></label>`;
+  return f('name', 'name', 'text') + f('email', 'email', 'email') + f('phone', 'phone', 'tel', '(416) 555-0123') + `<label class="fld"><span>${esc(t('notes'))}</span><textarea data-f="notes" rows="2">${esc(st.notes)}</textarea></label>`;
+}
+function renderPage() {
+  const app = $('app');
+  if (st.screen === 'loading') { app.innerHTML = header() + `<div class="wrap"><div class="thx"><p>${esc(t('loadingOrder'))}</p></div></div>`; return; }
+  if (st.screen !== 'form') { renderResult(); return; }
+  const early = earlyCapNames();
+  const legend = ['open', 'filling', 'almost', 'full'].map((s, i) => `<span><i style="background:${['var(--open)', 'var(--fill)', 'var(--almost)', 'var(--full)'][i]}"></i>${esc(t(s))}</span>`).join('');
+  app.innerHTML = header() + `<div class="wrap">
+    ${st.mode === 'manage' ? `<h2 style="margin-top:6px">${esc(t('manageTitle'))}</h2><div class="note" style="margin-bottom:8px">${esc(t('sameDayNote'))}</div>` : ''}
+    <div class="notes"><div class="note">${esc(t('noteDate'))}</div><div class="note"><b>${esc(t('noteLimited', { phone: phone() }))}</b>${early.length ? '<br>' + esc(t('noteEarly', { items: early.map(itemName).join(st.lang === 'zh' ? '、' : ' & '), time: cutoffTime() })) : ''}</div></div>
+    <div class="panel"><div class="ph"><h2>${esc(t('pickTitle'))}</h2><span>${esc(t('next7'))}</span></div>
+      <div class="dots">${legend}</div><div class="pickline" id="pickLine"></div>
+      <div id="gridHost"></div><div class="swipe">${esc(t('swipe'))}</div></div>
+    <div class="panel"><h2>${esc(t('itemsTitle'))}</h2><div id="itemsHost"></div></div>
+    <div class="panel two"><div><h2>${esc(t('detailsTitle'))}</h2>${fieldsHtml()}
+      <label class="chk"><input type="checkbox" id="remChk" ${st.reminder ? 'checked' : ''}><span>${esc(t('reminder'))}</span></label></div>
+      <div><h2>${esc(t('reviewTitle'))}</h2><div id="sumHost"></div></div></div>
+    <p class="fine" style="text-align:center">${esc(t('txtMax', { phone: phone() }))}</p></div>
+    <div class="bar" id="barHost"></div>`;
+  renderGrid(); renderItems(); renderSummary(); renderBar();
+}
+function renderResult() {
+  const r = st.result || {}, p = r.price || price(cartQty());
+  const titles = { thanks: [t('thanks'), t('thanksSub')], updated: [t('updated'), t('updatedSub')], cancelled: [t('cancelled'), t('cancelledSub')], notfound: [t('mHeads'), t('notFound')] };
+  const [h, sub] = titles[st.screen];
+  const lines = (st.screen === 'thanks' || st.screen === 'updated') ? `<div class="box"><div class="sr"><b>${esc(t('pickup'))}</b><span>${esc(r.when || '')}</span></div>${p.lines.map(l => `<div class="sr"><span>${l.q} × ${esc(itemName(l.o.capItem))}${variantLabel(l.o) ? ' (' + esc(variantLabel(l.o)) + ')' : ''}</span><span>${money(l.line)}</span></div>`).join('')}<div class="sr tot"><b>${esc(t('total'))}</b><b>${money(p.total)}</b></div><div class="fine">${esc((st.cfg.taxNote || {})[st.lang] || '')}</div>${r.reminder ? `<div class="disc">✓ ${esc(t('reminderOn'))}</div>` : ''}<div class="fine">${esc(t('sameDayNote'))}</div></div>` : '';
+  $('app').innerHTML = header() + `<div class="wrap"><div class="panel thx"><div class="big">${st.screen === 'cancelled' || st.screen === 'notfound' ? '🧾' : '🥐'}</div><h2>${esc(h)}</h2><p>${esc(sub)}</p>${lines}${st.mode === 'new' ? `<p><button class="btn" id="again">${esc(t('newOrder'))}</button></p>` : ''}<p class="fine">${esc(t('txtMax', { phone: phone() }))}</p></div></div>`;
+  if ($('again')) $('again').onclick = () => { st.screen = 'form'; st.q = {}; st.date = null; st.slot = null; st.notes = ''; st.result = null; renderPage(); refreshWeek(); };
+}
+
+/* ===================== ACTIONS ===================== */
+function validate() {
+  st.err = {};
+  if (st.mode === 'new') {
+    if (!st.name.trim()) st.err.name = 1;
+    if (!/^\S+@\S+\.\S+$/.test(st.email.trim())) st.err.email = 1;
+    if (st.phone.replace(/\D/g, '').length < 10) st.err.phone = 1;
+  }
+  return !Object.keys(st.err).length;
+}
+function highlightErrors() { document.querySelectorAll('.fld').forEach(l => { const i = l.querySelector('[data-f]'); if (i) l.classList.toggle('bad', !!st.err[i.dataset.f]); }); }
+
+function failMsg(res) {
+  const phoneV = phone(), items = (res.items || []).map(n => { const o = optBy(n); return itemName(o ? o.capItem : n); });
+  const uniq = items.filter((x, i) => items.indexOf(x) === i).join(', ');
+  switch (res.code) {
+    case 'LARGE_ORDER': return [t('mLarge'), t('large', { items: uniq, phone: phoneV })];
+    case 'CAPACITY': return [t('mBusy'), t('popularNoSug', { items: uniq, phone: phoneV }), true];
+    case 'LOCKED': return [t('mLocked'), t('lockedChange', { items: uniq, phone: phoneV })];
+    case 'LOAF_LIMIT': return [t('mLarge'), t('loafLimit', { n: st.cfg.settings.maxLoaves, phone: phoneV })];
+    case 'PAST': return [t('mDate'), t('dPast')];
+    case 'TOO_FAR': return [t('mDate'), t('dFar')];
+    case 'CLOSED': return [t('mClosed'), t('closedDay')];
+    case 'EMPTY': return [t('mCheck'), t('needItems')];
+    case 'BUSY': return [t('mHeads'), t('busyServer')];
+    case 'NOT_FOUND': return [t('mHeads'), t('notFound')];
+    case 'CLOSED_EDIT': return [t('mHeads'), t('closedEdit', { phone: phoneV })];
+    default: return [t('mHeads'), res.network ? t('netErr') : (res.error || t('netErr'))];
+  }
+}
+async function showFailure(res) {
+  const [title, text, wantSug] = failMsg(res);
+  if (res.network) {
+    const r = await modal({ title: t('mNet'), text: t('netErr'), buttons: [{ label: t('close'), cls: 'btn ghost', v: null }, { label: t('retry'), cls: 'btn', v: 'retry' }] });
+    return r === 'retry';
+  }
+  await refreshWeek(false, 8000);
+  let sug = [];
+  if (wantSug && st.date && st.slot) sug = suggest(cartQty(), st.date, st.slot);
+  const r = await modal({ title, text: sug.length ? (res.code === 'CAPACITY' ? t('popular', { items: failMsg(res)[1] && (res.items || []).map(n => itemName((optBy(n) || {}).capItem || n)).join(', '), phone: phone() }) : text) : text, sug, buttons: [{ label: t('close'), cls: 'btn ghost', v: null }] });
+  if (r && r.suggest) await applySuggestion(r.suggest);
+  return false;
+}
+function setBusy(on) {
+  st.busy = on; const b = $('btnMain'); if (!b) return;
+  b.disabled = on; b.innerHTML = on ? `<span class="spin"></span>${esc(t('sending'))}` : esc(st.mode === 'manage' ? t('save') : t('place'));
+  if ($('btnCancel')) $('btnCancel').disabled = on;
+}
+function itemsPayload() { const o = {}; opts().forEach(x => { if (qty(x.name) > 0) o[x.name] = qty(x.name); }); return o; }
+
+async function placeOrder() {
+  if (st.busy) return;
+  if (!st.date || !st.slot) return info(t('mCheck'), t('needTime'));
+  if (totalCount() === 0) return info(t('mCheck'), t('needItems'));
+  if (!validate()) { highlightErrors(); const f = document.querySelector('.fld.bad'); if (f) f.scrollIntoView({ block: 'center', behavior: 'smooth' }); return info(t('mFix'), t('needFields')); }
+  setBusy(true);
+  try {
+    const ex = await call('checkOrderExists', { email: st.email.trim(), phone: st.phone, pickupDate: st.date, pickupTime: st.slot });
+    if (ex && ex.found) {
+      const go = await modal({ title: t('mMerge'), text: t('mergeMsg'), buttons: [{ label: t('back'), cls: 'btn ghost', v: false }, { label: t('cont'), cls: 'btn', v: true }] });
+      if (!go) return;
+    }
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await call('submitOrder', { data: { name: st.name.trim(), email: st.email.trim(), phone: st.phone, pickupDate: st.date, pickupTime: st.slot, notes: st.notes, reminder: !!st.reminder, items: itemsPayload() } }, 40000);
+      if (res && res.success) {
+        st.result = { when: pickupTxt(), price: price(res.mergedItems ? res.mergedItems : cartQty()), reminder: st.reminder };
+        if (res.mergedItems) { const p = price(res.mergedItems); st.result.price = p; }
+        st.screen = 'thanks'; clearTimeout(weekTimer); renderPage(); scrollTo(0, 0); return;
+      }
+      const retry = await showFailure(res || { network: true });
+      if (!retry) break;
+    }
+  } finally { if (st.screen === 'form') setBusy(false); }
+}
+
+async function saveChanges() {
+  if (st.busy) return;
+  if (!st.order || !st.order.editable) return info(t('mHeads'), t('closedEdit', { phone: phone() }));
+  if (!st.date || !st.slot) return info(t('mCheck'), t('needTime'));
+  if (totalCount() === 0) return info(t('mCheck'), t('needItems'));
+  setBusy(true);
+  try {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await call('updateOrder', { token: st.token, data: { pickupDate: st.date, pickupTime: st.slot, notes: st.notes, reminder: !!st.reminder, items: itemsPayload() } }, 40000);
+      if (res && res.success) { st.result = { when: pickupTxt(), price: price(cartQty()), reminder: st.reminder }; st.screen = 'updated'; renderPage(); scrollTo(0, 0); return; }
+      const retry = await showFailure(res || { network: true });
+      if (!retry) break;
+    }
+  } finally { if (st.screen === 'form') setBusy(false); }
+}
+
+async function doCancel() {
+  if (st.busy) return;
+  if (st.order && st.order.canCancel === false) return info(t('mLocked'), t('cantCancel', { phone: phone() }));
+  const go = await modal({ title: t('mCancel'), text: t('cancelConfirm'), buttons: [{ label: t('keep'), cls: 'btn ghost', v: false }, { label: t('yesCancel'), cls: 'btn danger', v: true }] });
+  if (!go) return;
+  setBusy(true);
+  try {
+    const res = await call('cancelOrder', { token: st.token }, 40000);
+    if (res && res.success) { st.screen = 'cancelled'; renderPage(); scrollTo(0, 0); return; }
+    await showFailure(res || { network: true });
+  } finally { if (st.screen === 'form') setBusy(false); }
+}
+
+/* ===================== EVENTS ===================== */
+document.addEventListener('click', e => {
+  const lb = e.target.closest('[data-lang]');
+  if (lb) { st.lang = lb.dataset.lang; document.documentElement.lang = st.lang === 'zh' ? 'zh-Hant' : 'en'; const y = scrollY; renderPage(); scrollTo(0, y); return; }
+  const m = e.target.closest('.stp button[data-m]');
+  if (m) { const n = m.dataset.m; trySet(n, qty(n) + (+m.dataset.d)); return; }
+  const g = e.target.closest('.gc[data-d]');
+  if (g) {
+    if (g.dataset.k === 'closed') return info(t('mClosed'), t('closedDay'));
+    selectSlot(g.dataset.d, g.dataset.s);
+  }
+});
+document.addEventListener('change', e => {
+  const i = e.target.closest('input[data-q]'); if (i) { trySet(i.dataset.q, i.value); return; }
+  if (e.target.id === 'remChk') st.reminder = e.target.checked;
+});
+document.addEventListener('input', e => {
+  const f = e.target.closest('[data-f]'); if (!f) return;
+  st[f.dataset.f] = f.value; const l = f.closest('.fld'); if (l) l.classList.remove('bad'); delete st.err[f.dataset.f];
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input[data-q]')) e.target.blur(); });
+
+/* ===================== START ===================== */
+let weekTimer = null;
+function scheduleWeek() { clearTimeout(weekTimer); weekTimer = setTimeout(async () => { if (st.screen === 'form' && !document.hidden) await refreshWeek(false, 12000); scheduleWeek(); }, 45000); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && st.screen === 'form' && Date.now() - lastWeekAt > 15000) refreshWeek(false, 12000); });
+
+async function start() {
+  const token = new URLSearchParams(location.search).get('cancel');
+  if (token) { st.mode = 'manage'; st.token = token; st.screen = 'loading'; }
+  renderPage();
+  const [cfg, wk] = await Promise.all([call('getFormConfig'), token ? Promise.resolve(null) : call('getWeekAvailability', {}, 15000)]);
+  if (cfg && cfg.options) { st.cfg = Object.assign({}, st.cfg, cfg); }
+  else if (cfg && cfg.network) { /* keep embedded menu; the grid will say loading */ }
+  if (token) {
+    const o = await call('getOrderForCancel', { token });
+    if (!o || !o.found) { st.screen = 'notfound'; renderPage(); return; }
+    st.order = o; st.name = o.name; st.notes = o.notes || ''; st.reminder = !!o.reminder;
+    st.date = o.pickupDate; st.slot = o.pickupTime; st.q = {};
+    Object.keys(o.items || {}).forEach(n => { if (o.items[n] > 0) st.q[n] = o.items[n]; });
+    const w = await call('getWeekAvailability', { excludeToken: token }, 15000);
+    if (w && w.days) { st.week = w; lastWeekAt = Date.now(); }
+    st.screen = 'form'; renderPage();
+    if (!o.editable) info(t('mHeads'), t('closedEdit', { phone: phone() }));
+    scheduleWeek(); return;
+  }
+  if (wk && wk.days) { st.week = wk; lastWeekAt = Date.now(); renderGrid(); }
+  else if (!(cfg && cfg.options)) { const r = await modal({ title: t('mNet'), text: t('netErr'), buttons: [{ label: t('close'), cls: 'btn ghost', v: null }, { label: t('retry'), cls: 'btn', v: 'retry' }] }); if (r === 'retry') return start(); }
+  else await refreshWeek(false, 15000);
+  renderPage(); scheduleWeek();
+}
+start();
+</script>
+</body>
+</html>
