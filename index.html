@@ -41,6 +41,7 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .swipe{display:none;text-align:center;font-size:13px;color:var(--mu);margin-top:8px}
 /* items */
+.banner{background:#fff6dc;border:1px solid var(--g);border-radius:12px;padding:10px 14px;font-size:14px;display:flex;flex-direction:column;gap:2px;color:var(--ink);margin:0 0 12px}.banner span{color:var(--mu);font-size:13px}
 .sec{margin:16px 0 6px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
 .sec small{text-transform:none;letter-spacing:0;font-weight:500;display:block;margin-top:2px;font-size:13px;color:var(--mu)}
 .items{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
@@ -107,6 +108,7 @@ const DEFAULT_CFG = {"options":[{"name":"Pineapple Bun","cost":2.2,"cutoffMin":n
 /* ===================== TEXT ===================== */
 const S = {
  en:{brand:'Max Bakery',sub:'Pre-order · Markham, ON',
+  cutLeft:'left to order for tomorrow',cutSub:'Orders for tomorrow close at midnight tonight. Closed Tuesdays.',cutPast:'Tomorrow is closed for orders. Please pick a later day.',
   noteDate:'Please place orders at least 1 day in advance. Pre-orders are open for the next 7 days. We are closed on Tuesdays.',
   noteLimited:'Quantities are limited for each time slot. For large orders, please text Max at {phone}.',
   noteEarly:'{items}: order by {time} the night before pickup.',
@@ -150,6 +152,7 @@ const S = {
   sameDayNote:'Orders cannot be changed or cancelled on the day of pickup.',
   txtMax:'Questions or large orders: text Max at {phone}'},
  zh:{brand:'Max Bakery',sub:'預訂 · 萬錦',
+  cutLeft:'可預訂明天',cutSub:'明天的訂單於今晚午夜截止。逢星期二休息。',cutPast:'明天已截單，請選擇之後的日期。',
   noteDate:'請至少提前 1 天下單。現時可預訂未來 7 天。逢星期二休息。',
   noteLimited:'每個時段的數量有限。大量訂單請發短訊給 Max：{phone}。',
   noteEarly:'{items}：請於取貨前一天晚上 {time} 前訂購。',
@@ -479,6 +482,15 @@ function renderBar() {
 
 /* ===================== RENDER: PAGE ===================== */
 function langBtns() { return `<div class="lang"><button class="${st.lang === 'en' ? 'on' : ''}" data-lang="en">EN</button><button class="${st.lang === 'zh' ? 'on' : ''}" data-lang="zh">中文</button></div>`; }
+function msToMidnight() { // time left until midnight in Ontario
+  const p = {}; new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Toronto', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date()).forEach(x => { p[x.type] = +x.value; });
+  return 86400000 - (((p.hour % 24) * 60 + p.minute) * 60 + p.second) * 1000;
+}
+function bannerHtml() {
+  const ms = msToMidnight(), h = Math.floor(ms / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+  return `<div class="banner" id="cdBanner"><b>⏰ ${esc(h + 'h ' + m + 'm ' + t('cutLeft'))}</b><span>${esc(t('cutSub'))}</span></div>`;
+}
+setInterval(() => { const b = document.getElementById('cdBanner'); if (b) b.outerHTML = bannerHtml(); }, 30000);
 function header() { return `<header><div><h1>${esc(t('brand'))}</h1><small>${esc(t('sub'))}</small></div>${langBtns()}</header>`; }
 function fieldsHtml() {
   const f = (k, l, type, ph) => `<label class="fld ${st.err[k] ? 'bad' : ''}"><span>${esc(t(l))}</span><input type="${type}" data-f="${k}" value="${esc(st[k])}" placeholder="${ph || ''}" autocomplete="${k === 'name' ? 'name' : k === 'phone' ? 'tel' : 'email'}"></label>`;
@@ -493,6 +505,7 @@ function renderPage() {
   const legend = ['open', 'filling', 'almost', 'full'].map((s, i) => `<span><i style="background:${['var(--open)', 'var(--fill)', 'var(--almost)', 'var(--full)'][i]}"></i>${esc(t(s))}</span>`).join('');
   app.innerHTML = header() + `<div class="wrap">
     ${st.mode === 'manage' ? `<h2 style="margin-top:6px">${esc(t('manageTitle'))}</h2><div class="note" style="margin-bottom:8px">${esc(t('sameDayNote'))}</div>` : ''}
+    ${st.mode === 'manage' ? '' : bannerHtml()}
     <div class="notes"><div class="note">${esc(t('noteDate'))}</div><div class="note"><b>${esc(t('noteLimited', { phone: phone() }))}</b>${early.length ? '<br>' + esc(t('noteEarly', { items: early.map(itemName).join(st.lang === 'zh' ? '、' : ' & '), time: cutoffTime() })) : ''}</div></div>
     <div class="panel"><div class="ph"><h2>${esc(t('pickTitle'))}</h2><span>${esc(t('next7'))}</span></div>
       <div class="dots">${legend}</div><div class="pickline" id="pickLine"></div>
