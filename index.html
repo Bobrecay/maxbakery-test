@@ -80,9 +80,9 @@ h2{font:700 20px Georgia,serif;color:var(--m);margin:0 0 10px}
 .btn.gold{background:var(--g);color:var(--dm)}.btn.ghost{background:#fff;color:var(--m);border:1.5px solid var(--m)}.btn.danger{background:#fff;color:#b3382c;border:1.5px solid #b3382c}
 .btn:disabled{opacity:.5}
 /* modal */
-.busy{position:fixed;inset:0;background:#2c18104d;display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
-.busy .md{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:24px 28px;width:auto;min-width:220px}
-.busy .sp{width:34px;height:34px;border:4px solid #e6dcc0;border-top-color:var(--m);border-radius:50%;animation:spin .8s linear infinite}
+.wt{position:fixed;inset:0;background:#2c181099;display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.wt .md{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:24px 28px;width:auto;min-width:220px}
+.wt .sp{width:34px;height:34px;border:4px solid #e6dcc0;border-top-color:var(--m);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ov{position:fixed;inset:0;background:#2c181099;display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}
 .md{background:var(--ow);border-radius:16px;max-width:440px;width:100%;padding:20px;max-height:86vh;overflow:auto;box-shadow:0 12px 40px #0005}
@@ -292,7 +292,7 @@ let busyN = 0;
 function showBusy(text) {
   busyN++; let el = document.getElementById('busyRoot');
   if (!el) { el = document.createElement('div'); el.id = 'busyRoot'; document.body.appendChild(el); }
-  el.innerHTML = `<div class="busy" role="alert" aria-live="polite"><div class="md"><div class="sp"></div><b>${esc(text)}</b></div></div>`;
+  el.innerHTML = `<div class="wt" role="alert" aria-live="polite"><div class="md"><div class="sp"></div><b>${esc(text)}</b></div></div>`;
 }
 function hideBusy() { busyN = Math.max(0, busyN - 1); if (!busyN) { const el = document.getElementById('busyRoot'); if (el) el.innerHTML = ''; } }
 
