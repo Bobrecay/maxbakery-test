@@ -208,7 +208,7 @@ const phone = () => st.cfg.settings.phone;
 /* ===================== MENU HELPERS ===================== */
 const opts = () => st.cfg.options;
 const optBy = n => opts().find(o => o.name === n);
-const capNames = () => st.cfg.capItems;
+const capNames = () => { const seen = [], out = []; st.cfg.options.forEach(o => { if (seen.indexOf(o.capItem) === -1) { seen.push(o.capItem); out.push(o.capItem); } }); return out; }; // card order = row order in the Item Info tab
 const optsOf = cap => opts().filter(o => o.capItem === cap);
 function itemName(cap) {
   const o = optsOf(cap)[0];
