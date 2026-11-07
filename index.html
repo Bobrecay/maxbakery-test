@@ -105,6 +105,10 @@ button{font:inherit;cursor:pointer;color:inherit}
 .md .bt{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .md .bt button{border:0;border-radius:999px;background:var(--m);color:#fff;font-weight:700;padding:13px;font-size:15px}.md .bt button.g{background:#fff;color:var(--m);border:1.5px solid var(--m)}
 .md .sg{display:flex;justify-content:space-between;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:12px 14px;font-weight:600;margin-top:6px}
+.sugbox{margin:4px 16px 10px;background:#eef6ea;border:1px solid #c9dfc1;border-radius:14px;padding:11px 13px}
+.sugbox b{display:block;font-size:13px;color:#34542b;margin-bottom:8px}
+.sgs{display:flex;flex-wrap:wrap;gap:8px}
+.sgp{border:1.5px solid var(--open);background:#fff;color:var(--open);border-radius:999px;padding:8px 13px;font-weight:700;font-size:13px}
 </style>
 </head>
 <body>
@@ -125,7 +129,7 @@ const S = {
   tapHint:'Tap any item to choose how many.',pickChk:'Times are checked against your whole order.',pickGone:'Your order changed, so please choose a time again.',
   na1:'{i} not available',naN:'{n} items not available',partT:'Not everything is available then',partP:'{i} isn\'t available at that time. You can keep this time without it, or choose another time.',
   partLock:'{i} can no longer be ordered for that day (the {t} cutoff has passed). You can keep this time without it, or choose another time.',
-  keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',addOrder:'Add to order',updateOrder:'Update order',removeItem:'Remove from order',inOrder:'In your order ✓',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
+  keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',sugT:'Some times are full. These times fit your whole order:',addOrder:'Add to order',updateOrder:'Update order',removeItem:'Remove from order',inOrder:'In your order ✓',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
   cutInfoT:'Order by {t} the night before',cutInfo:'This item can no longer be added or changed after {t} the day before pickup.',
   sub:'Subtotal',disc2:'Bun discount applied',est:'Estimated total',
   pick:'Choose pickup time',pickT:'Pickup Date & Time',pickSub:'Pick a day and a time. Pre-orders are open for the next 7 days.',closed:'Closed',
@@ -163,7 +167,7 @@ const S = {
   tapHint:'點選任何產品即可選擇數量。',pickChk:'時段會按你整張訂單檢查。',pickGone:'訂單已更改，請重新選擇時間。',
   na1:'{i} 無法供應',naN:'{n} 款產品無法供應',partT:'並非所有產品都能在該時段提供',partP:'{i} 在該時段無法供應。你可以不要它而保留此時間，或選擇其他時間。',
   partLock:'{i} 已過 {t} 截單時間，無法再訂該日。你可以不要它而保留此時間，或選擇其他時間。',
-  keepWithout:'保留此時間，不要 {i}',removed:'已從訂單移除 {i}。',viewOrder:'查看訂單',addOrder:'加入訂單',updateOrder:'更新訂單',removeItem:'從訂單移除',inOrder:'已在訂單中 ✓',items:'件',item:'件',yourOrder:'你的訂單',noItems:'訂單是空的',noItemsSub:'從餐單加入美味麵包吧。',
+  keepWithout:'保留此時間，不要 {i}',removed:'已從訂單移除 {i}。',viewOrder:'查看訂單',sugT:'部分時段已滿。以下時間適合你整張訂單：',addOrder:'加入訂單',updateOrder:'更新訂單',removeItem:'從訂單移除',inOrder:'已在訂單中 ✓',items:'件',item:'件',yourOrder:'你的訂單',noItems:'訂單是空的',noItemsSub:'從餐單加入美味麵包吧。',
   cutInfoT:'請於前一晚 {t} 前訂購',cutInfo:'取貨前一天 {t} 之後，此產品將無法再加入或更改。',
   sub:'小計',disc2:'已套用麵包優惠',est:'預計總額',
   pick:'選擇取貨時間',pickT:'取貨日期及時間',pickSub:'請選擇日期及時間。現時可預訂未來 7 天。',closed:'休息',
@@ -290,17 +294,21 @@ function statusOf(d, sd) {
 }
 function maxCap(cap) { let m = 0; daysList().forEach(d => (d.slots || []).forEach(s => { if (s.items && s.items[cap]) m = Math.max(m, s.items[cap].cap); })); return m; }
 const startMin = l => { const m = /(\d+):(\d+) (AM|PM)/.exec(slotStart(l)); let h = +m[1] % 12; if (m[3] === 'PM') h += 12; return h * 60 + +m[2]; };
-// Times where the WHOLE order fits: same day first (closest time), then later days.
+const PREFER_FROM = 17 * 60;   // Max is quietest from 5 PM, so suggestions steer people to 5 PM or later
+// Times where the WHOLE order fits. Later times (5 PM+) come first, same day before other days; anything earlier only if nothing late fits.
 function suggest(units, fromDate, fromSlot, max) {
-  max = max || 3; const out = [], ref = fromSlot ? startMin(fromSlot) : 0;
+  max = max || 3; const cs = Object.keys(units).length;
   const lockedAll = st.mode === 'manage' && st.order && (st.order.lockedOptions || []).some(n => (st.order.items[n] || 0) > 0);
   const days = daysList().filter(d => !d.closed && d.slots && d.slots.length && !(lockedAll && d.date !== st.order.pickupDate));
   days.sort((a, b) => (a.date === fromDate ? -1 : b.date === fromDate ? 1 : a.date < b.date ? -1 : 1));
-  for (const d of days) {
-    const c = d.slots.filter(s => !(d.date === fromDate && s.slot === fromSlot) && !misfitsOf(d, s, units).length).sort((a, b) => Math.abs(startMin(a.slot) - ref) - Math.abs(startMin(b.slot) - ref));
-    for (const s of c) { out.push({ date: d.date, slot: s.slot, label: fmtDow(d.date) + ' ' + fmtMon(d.date) + ' · ' + slotStart(s.slot) }); if (out.length >= max) return out; }
-  }
-  return out;
+  const c = [];
+  days.forEach((d, di) => d.slots.forEach(s => {
+    if (d.date === fromDate && s.slot === fromSlot) return;
+    if (misfitsOf(d, s, units).length || (!cs && s.status === 'full')) return;
+    const m = startMin(s.slot); c.push({ d, s, di, m, pref: m >= PREFER_FROM ? 0 : 1 });
+  }));
+  c.sort((a, b) => a.pref - b.pref || a.di - b.di || a.m - b.m);
+  return c.slice(0, max).map(x => ({ date: x.d.date, slot: x.s.slot, label: fmtDow(x.d.date) + ' ' + fmtMon(x.d.date) + ' · ' + slotStart(x.s.slot) }));
 }
 
 /* ===================== NETWORK ===================== */
@@ -363,6 +371,7 @@ function slotStillOk() {
 async function pickSlot(dateK, label, skipFresh) {
   if (st.checking) return; st.checking = true; showBusy(t('checking'));
   try { if (!skipFresh || Date.now() - lastWeekAt > 5000) await refreshWeek(8000); } finally { st.checking = false; hideBusy(); }
+  if (st.screen === 'pickup') render();   // show the fresh availability behind any popup
   const d = dayData(dateK), sd = slotData(dateK, label);
   if (!d || d.closed) return info(t('mClosed'), t('closedDay'));
   if (!sd) return info(t('mHeads'), t('netErr'));
@@ -482,8 +491,16 @@ function scPickup() {
       }).join('')}</div>`;
     }
   }
+  let sugHtml = '';
+  if (st.week && st.date) {
+    const d = dayData(st.date), units = unitsByCap(cartQty()), cs = Object.keys(units).length;
+    if (d && !d.closed && (d.slots || []).some(s => misfitsOf(d, s, units).length || (!cs && s.status === 'full'))) {
+      const sg = suggest(units, st.date, st.slot, 3);
+      if (sg.length) sugHtml = `<div class="sugbox"><b>${esc(t('sugT'))}</b><div class="sgs">${sg.map(s => `<button class="sgp" data-sug="${esc(s.date + '|' + s.slot)}">${esc(s.label)}</button>`).join('')}</div></div>`;
+    }
+  }
   const msg = st.gone ? `<div class="gone">${esc(t('pickGone'))}</div>` : st.flash ? `<div class="chk2" style="color:#6a3a1b">${esc(st.flash)}</div>` : `<div class="chk2">✓ ${esc(t('pickChk'))}</div>`;
-  return topBar(t('pickT'), 'cart', true) + stepBar('pickup') + `<div style="padding:0 16px 6px;color:var(--mu);font-size:13px">${esc(t('pickSub'))}</div>${msg}<div class="days">${dayCards}</div>${slots}`;
+  return topBar(t('pickT'), 'cart', true) + stepBar('pickup') + `<div style="padding:0 16px 6px;color:var(--mu);font-size:13px">${esc(t('pickSub'))}</div>${msg}<div class="days">${dayCards}</div>${sugHtml}${slots}`;
 }
 const pickBox = (changeable, style) => `<div class="box pk" ${style ? `style="${style}"` : ''}><div><b style="font-size:13px;color:var(--mu)">${esc(t('pu'))}</b><div>${esc(pickTxt())}</div></div>${changeable ? `<a data-go="pickup">${esc(t('change'))}</a>` : ''}</div>`;
 function scDetails() {
@@ -631,7 +648,7 @@ async function doCancel() {
 
 /* ===================== EVENTS ===================== */
 document.addEventListener('click', e => {
-  const el = e.target.closest('[data-lang],[data-go],[data-q],[data-dq],[data-detail],[data-day],[data-slot],[data-act]'); if (!el) return;
+  const el = e.target.closest('[data-lang],[data-go],[data-q],[data-dq],[data-sug],[data-detail],[data-day],[data-slot],[data-act]'); if (!el) return;
   const d = el.dataset;
   if (d.lang) { st.lang = d.lang; return render(); }
   if (d.detail) return go('detail', d.detail);
@@ -640,6 +657,7 @@ document.addEventListener('click', e => {
   if (d.act === 'addItem') return commitDraft();
   if (d.day) { if (st.date !== d.day) { st.date = d.day; st.slot = null; st.flash = ''; st.gone = false; } return render(); }
   if (d.slot) return pickSlot(st.date, d.slot);
+  if (d.sug) { const [dt, sl] = d.sug.split('|'); return pickSlot(dt, sl); }
   if (d.go) return go(d.go);
   if (d.act === 'toReview') { if (!validate()) { render(); const f = document.querySelector('.fld.bad'); if (f) f.scrollIntoView({ block: 'center' }); return info(t('fixT'), t('fixP')); } return go('review'); }
   if (d.act === 'place') return placeOrder();
