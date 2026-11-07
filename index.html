@@ -43,6 +43,9 @@ button{font:inherit;cursor:pointer;color:inherit}
 .stp{display:flex;align-items:center;justify-content:space-between;background:var(--m);border-radius:999px;padding:3px;color:#fff}
 .stp button{width:34px;height:34px;border-radius:50%;border:0;background:#fff;color:var(--m);font-size:20px;line-height:1;padding:0}
 .stp b{font-size:16px;min-width:24px;text-align:center}
+.stp input{width:44px;border:0;background:transparent;text-align:center;font:700 16px inherit;color:inherit;padding:0;-moz-appearance:textfield;min-width:0}
+.stp input::-webkit-outer-spin-button,.stp input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.line .stp input{width:30px}
 .stp.lt{background:#f3e6cf;color:var(--ink)}
 .dimg{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#efe2c8}
 .dbody{padding:16px}.dbody h2{margin:0 0 2px;font:700 25px Georgia,serif;color:var(--dm)}.dbody .zh{color:var(--mu);margin-bottom:10px}
@@ -412,6 +415,16 @@ async function changeQty(name, delta) {
   setQ(name, n); render();
 }
 
+async function setDraft(name, n) {
+  const o = optBy(name), cap = o.capItem;
+  n = Math.max(0, Math.min(99, Math.floor(Number(n) || 0)));
+  if (n > dq(name)) {
+    const next = cartQty(); optsOf(cap).forEach(x => { next[x.name] = dq(x.name); }); next[name] = n;
+    if (o.loaf && loafUnits(next) > st.cfg.settings.maxLoaves + EPS) { render(); return info(t('mLarge'), t('loafLimit', { n: st.cfg.settings.maxLoaves, phone: phoneNo() })); }
+    if (st.week && (unitsByCap(next)[cap] || 0) > maxCap(cap) + EPS) { render(); return info(t('largeT'), t('large', { items: iName(cap), phone: phoneNo() })); }
+  }
+  st.draft[name] = n; render();
+}
 async function commitDraft() {
   const cap = st.detail || capNames()[0], os = optsOf(cap), next = cartQty();
   os.forEach(o => { const n = dq(o.name); if (n > 0) next[o.name] = n; else delete next[o.name]; });
@@ -443,8 +456,8 @@ function topBar(title, back, noBag) {
 }
 const stepBar = s => { const f = FLOW(), i = f.indexOf(s); return `<div class="steps">${f.map((x, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>`; };
 const dq = n => st.draft[n] || 0;
-const dstepper = n => `<div class="stp lt"><button data-dq="${esc(n)}" data-d="-1" aria-label="−">−</button><b>${dq(n)}</b><button data-dq="${esc(n)}" data-d="1" aria-label="+">+</button></div>`;
-const stepper = (n, cls) => `<div class="stp ${cls || ''}"><button data-q="${esc(n)}" data-d="-1" aria-label="−">−</button><b>${qty(n)}</b><button data-q="${esc(n)}" data-d="1" aria-label="+">+</button></div>`;
+const dstepper = n => `<div class="stp lt"><button data-dq="${esc(n)}" data-d="-1" aria-label="−">−</button><input type="number" inputmode="numeric" min="0" max="99" value="${dq(n)}" data-dqi="${esc(n)}" aria-label="Quantity"><button data-dq="${esc(n)}" data-d="1" aria-label="+">+</button></div>`;
+const stepper = (n, cls) => `<div class="stp ${cls || ''}"><button data-q="${esc(n)}" data-d="-1" aria-label="−">−</button><input type="number" inputmode="numeric" min="0" max="999" value="${qty(n)}" data-qi="${esc(n)}" aria-label="Quantity"><button data-q="${esc(n)}" data-d="1" aria-label="+">+</button></div>`;
 function card(c) {
   const os = optsOf(c), o = os[0], cu = cutOf(c), multi = os.length > 1, total = os.reduce((a, x) => a + qty(x.name), 0);
   const pr = multi ? `<b>${money(Math.min(...os.map(x => x.cost)))}</b>+` : (o.regular ? `<b>${money(o.cost)}</b> ${esc(t('each'))}` : `<b>${money(o.cost)}</b>`);
@@ -653,7 +666,7 @@ document.addEventListener('click', e => {
   if (d.lang) { st.lang = d.lang; return render(); }
   if (d.detail) return go('detail', d.detail);
   if (d.q) return changeQty(d.q, +d.d);
-  if (d.dq) { st.draft[d.dq] = Math.max(0, Math.min(99, dq(d.dq) + (+d.d))); return render(); }
+  if (d.dq) return setDraft(d.dq, dq(d.dq) + (+d.d));
   if (d.act === 'addItem') return commitDraft();
   if (d.day) { if (st.date !== d.day) { st.date = d.day; st.slot = null; st.flash = ''; st.gone = false; } return render(); }
   if (d.slot) return pickSlot(st.date, d.slot);
@@ -666,6 +679,11 @@ document.addEventListener('click', e => {
   if (d.act === 'editTime') return go('pickup');
   if (d.act === 'again') { st.q = {}; st.date = null; st.slot = null; st.notes = ''; st.result = null; st.flash = ''; st.gone = false; st.screen = 'menu'; render(); scrollTo(0, 0); refreshWeek(); scheduleWeek(); }
 });
+document.addEventListener('change', e => {
+  const a = e.target.closest('input[data-dqi]'); if (a) return setDraft(a.dataset.dqi, a.value);
+  const b = e.target.closest('input[data-qi]'); if (b) return changeQty(b.dataset.qi, Math.max(0, Math.min(999, Math.floor(Number(b.value) || 0))) - qty(b.dataset.qi));
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input[data-dqi],input[data-qi]')) e.target.blur(); });
 document.addEventListener('input', e => {
   const k = e.target.dataset && e.target.dataset.f; if (!k) return;
   st[k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
