@@ -522,7 +522,7 @@ function dock() {
   if (s === 'detail') {
     const os = optsOf(st.detail || capNames()[0]), changed = os.some(o => dq(o.name) !== qty(o.name)), inCart = os.some(o => qty(o.name) > 0), dTot = os.reduce((a, o) => a + dq(o.name), 0);
     const lab = !changed ? t(inCart ? 'inOrder' : 'addOrder') : dTot === 0 ? t('removeItem') : inCart ? t('updateOrder') : t('addOrder');
-    return `<button class="cta c" data-act="addItem" ${changed ? '' : 'disabled'}>${esc(lab)}</button><div class="dock2"><button class="cta ghost c" data-go="menu">${esc(t('back'))}</button>${n ? view : ''}</div>`;
+    return `<button class="cta c" data-act="addItem" ${changed ? '' : 'disabled'}>${esc(lab)}</button><button class="cta ghost c" data-go="menu">${esc(t('back'))}</button>`;
   }
   if (s === 'cart') return `<button class="cta c" data-go="pickup" ${n ? '' : 'disabled'}>${esc(t('pick'))} →</button>`;
   if (s === 'pickup') return `<button class="cta c" data-go="${nextAfterPickup()}" ${st.slot ? '' : 'disabled'}>${esc(t('cont'))} →</button>`;
