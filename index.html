@@ -82,6 +82,9 @@ button{font:inherit;cursor:pointer;color:inherit}
 .pk{display:flex;justify-content:space-between;align-items:center;gap:10px}.pk a{color:var(--m);font-weight:700;font-size:14px;text-decoration:underline;cursor:pointer}
 .dock{position:fixed;left:50%;transform:translateX(-50%);width:100%;max-width:480px;bottom:0;padding:12px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(#fbf4ea00,#fbf4ea 28%);display:flex;gap:10px;z-index:10}
 .dock:empty{display:none}
+.dock.col{flex-direction:column;gap:8px}
+.dock2{display:flex;gap:10px}
+.dock2 .cta{padding:12px 14px;font-size:15px}
 .cta{flex:1;border:0;border-radius:999px;background:var(--m);color:#fff;font-weight:700;font-size:16px;padding:15px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 6px 16px #6b1a1a40}
 .cta span{white-space:nowrap}
 .cta[disabled]{background:#cdbfae;box-shadow:none}.cta.c{justify-content:center}
@@ -122,7 +125,7 @@ const S = {
   tapHint:'Tap any item to choose how many.',pickChk:'Times are checked against your whole order.',pickGone:'Your order changed, so please choose a time again.',
   na1:'{i} not available',naN:'{n} items not available',partT:'Not everything is available then',partP:'{i} isn\'t available at that time. You can keep this time without it, or choose another time.',
   partLock:'{i} can no longer be ordered for that day (the {t} cutoff has passed). You can keep this time without it, or choose another time.',
-  keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
+  keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',addOrder:'Add to order',updateOrder:'Update order',removeItem:'Remove from order',inOrder:'In your order ✓',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
   cutInfoT:'Order by {t} the night before',cutInfo:'This item can no longer be added or changed after {t} the day before pickup.',
   sub:'Subtotal',disc2:'Bun discount applied',est:'Estimated total',
   pick:'Choose pickup time',pickT:'Pickup Date & Time',pickSub:'Pick a day and a time. Pre-orders are open for the next 7 days.',closed:'Closed',
@@ -160,7 +163,7 @@ const S = {
   tapHint:'點選任何產品即可選擇數量。',pickChk:'時段會按你整張訂單檢查。',pickGone:'訂單已更改，請重新選擇時間。',
   na1:'{i} 無法供應',naN:'{n} 款產品無法供應',partT:'並非所有產品都能在該時段提供',partP:'{i} 在該時段無法供應。你可以不要它而保留此時間，或選擇其他時間。',
   partLock:'{i} 已過 {t} 截單時間，無法再訂該日。你可以不要它而保留此時間，或選擇其他時間。',
-  keepWithout:'保留此時間，不要 {i}',removed:'已從訂單移除 {i}。',viewOrder:'查看訂單',items:'件',item:'件',yourOrder:'你的訂單',noItems:'訂單是空的',noItemsSub:'從餐單加入美味麵包吧。',
+  keepWithout:'保留此時間，不要 {i}',removed:'已從訂單移除 {i}。',viewOrder:'查看訂單',addOrder:'加入訂單',updateOrder:'更新訂單',removeItem:'從訂單移除',inOrder:'已在訂單中 ✓',items:'件',item:'件',yourOrder:'你的訂單',noItems:'訂單是空的',noItemsSub:'從餐單加入美味麵包吧。',
   cutInfoT:'請於前一晚 {t} 前訂購',cutInfo:'取貨前一天 {t} 之後，此產品將無法再加入或更改。',
   sub:'小計',disc2:'已套用麵包優惠',est:'預計總額',
   pick:'選擇取貨時間',pickT:'取貨日期及時間',pickSub:'請選擇日期及時間。現時可預訂未來 7 天。',closed:'休息',
@@ -196,7 +199,7 @@ const S = {
 /* ===================== STATE & HELPERS ===================== */
 const st = { cfg: DEFAULT_CFG, week: null, lang: 'en', screen: 'menu', detail: null, q: {}, date: null, slot: null,
   name: '', email: '', phone: '', notes: '', reminder: false, bad: {}, flash: '', gone: false,
-  mode: 'new', token: null, order: null, checking: false, busy: false, result: null };
+  draft: {}, mode: 'new', token: null, order: null, checking: false, busy: false, result: null };
 const t = (k, v) => { let s = (S[st.lang][k] ?? S.en[k] ?? k); if (v) for (const x in v) s = s.split('{' + x + '}').join(v[x]); return s; };
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -400,10 +403,24 @@ async function changeQty(name, delta) {
   setQ(name, n); render();
 }
 
+async function commitDraft() {
+  const cap = st.detail || capNames()[0], os = optsOf(cap), next = cartQty();
+  os.forEach(o => { const n = dq(o.name); if (n > 0) next[o.name] = n; else delete next[o.name]; });
+  if (st.mode === 'manage' && st.order && st.date) {
+    const day = dayData(st.date);
+    for (const o of os) { const n = next[o.name] || 0, orig = st.order.items[o.name] || 0; if (day && (day.locked || []).indexOf(o.name) !== -1 && n !== orig && n !== qty(o.name)) return info(t('mLocked'), t('lockedChange', { items: iName(cap), phone: phoneNo() })); }
+  }
+  if (loafUnits(next) > st.cfg.settings.maxLoaves + EPS) return info(t('mLarge'), t('loafLimit', { n: st.cfg.settings.maxLoaves, phone: phoneNo() }));
+  if (st.week && (unitsByCap(next)[cap] || 0) > maxCap(cap) + EPS) return info(t('largeT'), t('large', { items: iName(cap), phone: phoneNo() }));
+  os.forEach(o => setQ(o.name, next[o.name] || 0));
+  go('menu');
+}
+
 /* ===================== SCREENS ===================== */
 const FLOW = () => st.mode === 'manage' ? ['menu', 'cart', 'pickup', 'review'] : ['menu', 'cart', 'pickup', 'details', 'review'];
 function go(s, extra) {
   if (extra !== undefined) st.detail = extra;
+  if (s === 'detail') { st.draft = {}; optsOf(st.detail || capNames()[0]).forEach(o => { st.draft[o.name] = qty(o.name); }); }
   if (s === 'pickup' && st.date && st.slot && !slotStillOk()) { st.slot = null; st.gone = true; }
   if ((s === 'details' || s === 'review') && !slotStillOk()) { if (st.slot) st.gone = true; st.slot = null; s = 'pickup'; }
   st.screen = s; render(); scrollTo(0, 0);
@@ -416,6 +433,8 @@ function topBar(title, back, noBag) {
   return `<div class="top">${back ? `<button class="ib" data-go="${back}" aria-label="Back">‹</button>` : ''}${title ? `<h2>${esc(title)}</h2>` : `<div style="flex:1"><div class="serif" style="font-size:22px;font-weight:700;color:var(--dm)">${esc(t('brand'))}</div><div style="font-size:12px;color:var(--mu)">${esc(t('tag'))}</div></div>`}${title ? '' : langBtns()}${noBag ? '' : `<button class="ib" data-go="cart" aria-label="Order">🛍${n ? `<span class="bd">${n}</span>` : ''}</button>`}</div>`;
 }
 const stepBar = s => { const f = FLOW(), i = f.indexOf(s); return `<div class="steps">${f.map((x, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>`; };
+const dq = n => st.draft[n] || 0;
+const dstepper = n => `<div class="stp lt"><button data-dq="${esc(n)}" data-d="-1" aria-label="−">−</button><b>${dq(n)}</b><button data-dq="${esc(n)}" data-d="1" aria-label="+">+</button></div>`;
 const stepper = (n, cls) => `<div class="stp ${cls || ''}"><button data-q="${esc(n)}" data-d="-1" aria-label="−">−</button><b>${qty(n)}</b><button data-q="${esc(n)}" data-d="1" aria-label="+">+</button></div>`;
 function card(c) {
   const os = optsOf(c), o = os[0], cu = cutOf(c), multi = os.length > 1, total = os.reduce((a, x) => a + qty(x.name), 0);
@@ -433,10 +452,10 @@ function scMenu() {
 }
 function scDetail() {
   const caps = capNames(), c = st.detail || caps[0], os = optsOf(c), cu = cutOf(c), o0 = os[0];
-  const rows = os.map(o => `<div class="vrow"><div class="l">${os.length > 1 ? esc(vLabel(o)) : esc(t('each'))}<b>${money(o.cost)}</b></div>${stepper(o.name, 'lt')}</div>`).join('');
+  const rows = os.map(o => `<div class="vrow"><div class="l">${os.length > 1 ? esc(vLabel(o)) : esc(t('each'))}<b>${money(o.cost)}</b></div>${dstepper(o.name)}</div>`).join('');
   const S0 = st.cfg.settings, other = st.lang === 'zh' ? c : zhName(o0);
   return topBar('', 'menu') + `<img class="dimg" src="${imgSrc(o0)}" alt=""><div class="dbody"><h2>${esc(iName(c))}</h2><div class="zh">${esc(other && other !== iName(c) ? other : '')}</div>
-   ${cu ? `<div class="info"><span>🕘</span><div><b>${esc(t('cutInfoT', { t: cu.cutoffText }))}</b>${esc(t('cutInfo', { t: cu.cutoffText }))}</div></div>` : ''}${o0.regular ? `<div class="info ok"><span>✨</span><div>${esc(t('disc', { n: S0.discountMinQty, p: money(S0.discountPrice), c: money(o0.cost) }))}</div></div>` : ''}${rows}</div>`;
+   ${cu ? `<div class="info"><span>🕘</span><div><b>${esc(t('cutInfoT', { t: cu.cutoffText }))}</b>${esc(t('cutInfo', { t: cu.cutoffText }))}</div></div>` : ''}${o0.regular ? `<div class="info ok"><span>✨</span><div>${esc(t('disc', { n: S0.discountMinQty, p: money(S0.discountPrice), c: money(o0.cost) }))}</div></div>` : ''}${rows}</div><div style="height:80px"></div>`;
 }
 function scCart() {
   const p = price(cartQty());
@@ -500,7 +519,11 @@ function dock() {
   const p = price(cartQty()), n = totalCount(), s = st.screen, editable = st.order && st.order.editable;
   const view = `<button class="cta" data-go="cart"><span>${esc(t('viewOrder'))}${s === 'menu' ? ' · ' + n + ' ' + esc(t(n === 1 ? 'item' : 'items')) : ''}</span><span>${money(p.total)}</span></button>`;
   if (s === 'menu') return n ? view : '';
-  if (s === 'detail') return `<button class="cta ghost c" data-go="menu">${esc(t('back'))}</button>` + (n ? view : '');
+  if (s === 'detail') {
+    const os = optsOf(st.detail || capNames()[0]), changed = os.some(o => dq(o.name) !== qty(o.name)), inCart = os.some(o => qty(o.name) > 0), dTot = os.reduce((a, o) => a + dq(o.name), 0);
+    const lab = !changed ? t(inCart ? 'inOrder' : 'addOrder') : dTot === 0 ? t('removeItem') : inCart ? t('updateOrder') : t('addOrder');
+    return `<button class="cta c" data-act="addItem" ${changed ? '' : 'disabled'}>${esc(lab)}</button><div class="dock2"><button class="cta ghost c" data-go="menu">${esc(t('back'))}</button>${n ? view : ''}</div>`;
+  }
   if (s === 'cart') return `<button class="cta c" data-go="pickup" ${n ? '' : 'disabled'}>${esc(t('pick'))} →</button>`;
   if (s === 'pickup') return `<button class="cta c" data-go="${nextAfterPickup()}" ${st.slot ? '' : 'disabled'}>${esc(t('cont'))} →</button>`;
   if (s === 'details') return `<button class="cta c" data-act="toReview">${esc(t('review'))} →</button>`;
@@ -511,7 +534,7 @@ function dock() {
 }
 function render() {
   const f = { menu: scMenu, detail: scDetail, cart: scCart, pickup: scPickup, details: scDetails, review: scReview, done: scDone, manage: scManage, loading: () => `<div class="load" style="padding-top:90px">${esc(t('loadingOrder'))}</div>` }[st.screen];
-  const y = scrollY; $('app').innerHTML = f(); $('dock').innerHTML = dock(); scrollTo(0, y);
+  const y = scrollY; $('app').innerHTML = f(); $('dock').innerHTML = dock(); $('dock').className = 'dock' + (st.screen === 'detail' ? ' col' : ''); scrollTo(0, y);
   document.documentElement.lang = st.lang === 'zh' ? 'zh-Hant' : 'en';
 }
 
@@ -608,11 +631,13 @@ async function doCancel() {
 
 /* ===================== EVENTS ===================== */
 document.addEventListener('click', e => {
-  const el = e.target.closest('[data-lang],[data-go],[data-q],[data-detail],[data-day],[data-slot],[data-act]'); if (!el) return;
+  const el = e.target.closest('[data-lang],[data-go],[data-q],[data-dq],[data-detail],[data-day],[data-slot],[data-act]'); if (!el) return;
   const d = el.dataset;
   if (d.lang) { st.lang = d.lang; return render(); }
   if (d.detail) return go('detail', d.detail);
   if (d.q) return changeQty(d.q, +d.d);
+  if (d.dq) { st.draft[d.dq] = Math.max(0, Math.min(99, dq(d.dq) + (+d.d))); return render(); }
+  if (d.act === 'addItem') return commitDraft();
   if (d.day) { if (st.date !== d.day) { st.date = d.day; st.slot = null; st.flash = ''; st.gone = false; } return render(); }
   if (d.slot) return pickSlot(st.date, d.slot);
   if (d.go) return go(d.go);
