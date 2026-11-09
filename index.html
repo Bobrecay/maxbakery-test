@@ -465,7 +465,7 @@ function card(c) {
 }
 function scMenu() {
   const S0 = st.cfg.settings, caps = capNames(), bunCap = caps.find(c => sectionOf(c) === 'Buns'), bun = bunCap ? optsOf(bunCap)[0] : null;
-  const secs = [['Buns', 'secBuns'], ['Dinner', 'secDinner'], ['Loaves', 'secLoaves']].map(([k, tk]) => { const cs = caps.filter(c => sectionOf(c) === k); return cs.length ? `<div class="sec"><h3>${esc(t(tk))}</h3>${k === 'Buns' && bun ? `<small>${esc(money(bun.cost))} ${esc(t('each'))}</small>` : ''}</div><div class="grid">${cs.map(card).join('')}</div>` : ''; }).join('');
+  const secs = [['Buns', 'secBuns'], ['Dinner', 'secDinner'], ['Loaves', 'secLoaves']].map(([k, tk]) => { const cs = caps.filter(c => sectionOf(c) === k); return cs.length ? `<div class="sec"><h3>${esc(t(tk))}</h3></div><div class="grid">${cs.map(card).join('')}</div>` : ''; }).join('');
   const intro = st.mode === 'manage'
     ? `<div class="note" style="margin-top:4px">${esc(t('sameDay'))}</div>`
     : `<div class="hero"><img src="images/ai-pineapple-bun.webp" alt=""><div><h1>${esc(t('heroH'))}</h1><p>${esc(t('heroP'))}</p></div></div>${bannerHtml()}`;
@@ -694,7 +694,7 @@ document.addEventListener('input', e => {
 let weekTimer = null;
 function scheduleWeek() { clearTimeout(weekTimer); weekTimer = setTimeout(async () => { if (st.screen !== 'done' && !document.hidden && !busyN) await refreshWeek(12000); scheduleWeek(); }, 45000); }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && st.screen !== 'done' && Date.now() - lastWeekAt > 15000) refreshWeek(12000); });
-async function start() { showBusy(t('loading')); try { await startInner(); } finally { hideBusy(); } }
+async function start() { await startInner(); }   // menu shows straight away; availability loads in the background
 async function startInner() {
   const token = new URLSearchParams(location.search).get('cancel');
   if (token) { st.mode = 'manage'; st.token = token; st.screen = 'loading'; }
