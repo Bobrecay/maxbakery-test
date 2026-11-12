@@ -42,11 +42,11 @@ button{font:inherit;cursor:pointer;color:inherit}
 .pc .opt{display:none;font-size:11.5px;line-height:1.3;color:var(--mu);margin-top:1px;min-height:15px}
 .grid.hasopt .opt{display:block}
 @media(max-width:400px){.grid.hasopt .opt{min-height:30px}}
-.pc .meta{height:16px;font-size:11px;font-weight:600;color:var(--almost);margin-top:5px;white-space:nowrap;overflow:hidden}
+.pc .meta{font-size:11px;line-height:1.3;font-weight:600;color:var(--almost);margin-top:5px}
 .stp{display:flex;align-items:center;justify-content:space-between;background:var(--m);border-radius:999px;padding:3px;color:#fff}
 .stp button{width:34px;height:34px;border-radius:50%;border:0;background:#fff;color:var(--m);font-size:20px;line-height:1;padding:0}
 .stp b{font-size:16px;min-width:24px;text-align:center}
-.stp input{width:44px;border:0;background:transparent;text-align:center;font:700 16px inherit;color:inherit;padding:0;-moz-appearance:textfield;min-width:0}
+.stp input{width:44px;border:0;background:transparent;text-align:center;font-family:inherit;font-weight:700;font-size:16px;color:inherit;padding:0;-moz-appearance:textfield;min-width:0}
 .stp input::-webkit-outer-spin-button,.stp input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .line .stp input{width:30px}
 .stp.lt{background:#f3e6cf;color:var(--ink)}
@@ -131,12 +131,12 @@ const S = {
  en:{brand:'Max Bakery',tag:'Pre-order · Markham, ON',heroH:'Freshly baked, just for you',heroP:'Pre-order your favourites for pickup.',
   left:'Ordering for tomorrow closes in {t}',leftSub:"Place your order by midnight tonight for next-day pickup. We're closed on Tuesdays.",
   disc:'Buy {n}+ buns and each one is {p} (instead of {c}).',limited:'Quantities are limited for each time slot. For large orders, please text Max at {ph}.',
-  secBuns:'Buns',secDinner:'Dinner Buns',secLoaves:'Loaves',each:'each',cut:'Order by {t}',
+  secBuns:'Buns',secDinner:'Dinner Buns',secLoaves:'Loaves',each:'each',cut:'Next-day orders close at {t} the night before.',
   tapHint:'Tap any item to choose how many.',pickChk:'Times are checked against your whole order.',pickGone:'Your order changed, so please choose a time again.',
   na1:'{i} not available',naN:'{n} items not available',partT:'Not everything is available then',partP:'{i} isn\'t available at that time. You can keep this time without it, or choose another time.',
   partLock:'{i} can no longer be ordered for that day (the {t} cutoff has passed). You can keep this time without it, or choose another time.',
   keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',from:'From',chooseSize:'Choose size',or:' or ',sugT:'Some times are full. These times fit your whole order:',addOrder:'Add to order',updateOrder:'Update order',removeItem:'Remove from order',inOrder:'In your order ✓',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
-  cutInfoT:'Order by {t} the night before',cutInfo:'This item can no longer be added or changed after {t} the day before pickup.',
+  cutInfoT:'Order by {t} the night before',cutInfo:'After {t}, this item can no longer be added to or changed in your order for next-day pickup.',
   sub:'Subtotal',disc2:'Bun discount applied',est:'Estimated total',
   pick:'Choose pickup time',pickT:'Pickup Date & Time',pickSub:'Pick a day and a time. Pre-orders are open for the next 7 days.',closed:'Closed',
   open:'Open',filling:'Filling Up',almost:'Almost Full',full:'Full',cont:'Continue',
@@ -169,12 +169,12 @@ const S = {
  zh:{brand:'Max Bakery',tag:'預訂 · 萬錦',heroH:'新鮮出爐，專為你而做',heroP:'預訂你喜愛的麵包，到店自取。',
   left:'明天取貨的訂購將於 {t} 後截止',leftSub:'請於今晚午夜前下單，以便明天取貨。逢星期二休息。',
   disc:'購買 {n} 個或以上麵包，每個只需 {p}（原價 {c}）。',limited:'每個時段數量有限。大量訂購請致電／短訊 Max：{ph}。',
-  secBuns:'麵包',secDinner:'餐包',secLoaves:'方包',each:'每個',cut:'{t} 前訂購',
+  secBuns:'麵包',secDinner:'餐包',secLoaves:'方包',each:'每個',cut:'次日取貨的訂單於前一晚 {t} 截止。',
   tapHint:'點選任何產品即可選擇數量。',pickChk:'時段會按你整張訂單檢查。',pickGone:'訂單已更改，請重新選擇時間。',
   na1:'{i} 無法供應',naN:'{n} 款產品無法供應',partT:'並非所有產品都能在該時段提供',partP:'{i} 在該時段無法供應。你可以不要它而保留此時間，或選擇其他時間。',
   partLock:'{i} 已過 {t} 截單時間，無法再訂該日。你可以不要它而保留此時間，或選擇其他時間。',
   keepWithout:'保留此時間，不要 {i}',removed:'已從訂單移除 {i}。',viewOrder:'查看訂單',from:'由',chooseSize:'選擇大小',or:'或',sugT:'部分時段已滿。以下時間適合你整張訂單：',addOrder:'加入訂單',updateOrder:'更新訂單',removeItem:'從訂單移除',inOrder:'已在訂單中 ✓',items:'件',item:'件',yourOrder:'你的訂單',noItems:'訂單是空的',noItemsSub:'從餐單加入美味麵包吧。',
-  cutInfoT:'請於前一晚 {t} 前訂購',cutInfo:'取貨前一天 {t} 之後，此產品將無法再加入或更改。',
+  cutInfoT:'請於前一晚 {t} 前訂購',cutInfo:'{t} 後，此產品無法再加入或更改次日取貨的訂單。',
   sub:'小計',disc2:'已套用麵包優惠',est:'預計總額',
   pick:'選擇取貨時間',pickT:'取貨日期及時間',pickSub:'請選擇日期及時間。現時可預訂未來 7 天。',closed:'休息',
   open:'有位',filling:'漸滿',almost:'將滿',full:'已滿',cont:'繼續',
@@ -481,7 +481,7 @@ function scDetail() {
   const rows = os.map(o => `<div class="vrow"><div class="l">${os.length > 1 ? esc(vLabel(o)) : esc(t('each'))}<b>${money(o.cost)}</b></div>${dstepper(o.name)}</div>`).join('');
   const S0 = st.cfg.settings, other = st.lang === 'zh' ? c : zhName(o0);
   return topBar('', 'menu') + `<img class="dimg" src="${imgSrc(o0)}" alt=""><div class="dbody"><h2>${esc(iName(c))}</h2><div class="zh">${esc(other && other !== iName(c) ? other : '')}</div>
-   ${cu ? `<div class="info"><span>🕘</span><div><b>${esc(t('cutInfoT', { t: cu.cutoffText }))}</b>${esc(t('cutInfo', { t: cu.cutoffText }))}</div></div>` : ''}${o0.regular ? `<div class="info ok"><span>✨</span><div>${esc(t('disc', { n: S0.discountMinQty, p: money(S0.discountPrice), c: money(o0.cost) }))}</div></div>` : ''}${rows}</div><div style="height:80px"></div>`;
+   ${cu ? `<div class="info"><span>🕘</span><div><b>${esc(t('cutInfoT', { t: cu.cutoffText }))}</b>${esc(t('cutInfo', { t: cu.cutoffText }))}</div></div>` : ''}${o0.regular ? `<div class="info ok"><span>✨</span><div>${esc(t('disc', { n: S0.discountMinQty, p: money(S0.discountPrice), c: money(o0.cost) }))}</div></div>` : ''}${rows}</div><div style="height:140px"></div>`;
 }
 function scCart() {
   const p = price(cartQty());
