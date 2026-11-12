@@ -448,13 +448,37 @@ async function commitDraft() {
 
 /* ===================== SCREENS ===================== */
 const FLOW = () => st.mode === 'manage' ? ['menu', 'cart', 'pickup', 'review'] : ['menu', 'cart', 'pickup', 'details', 'review'];
-function go(s, extra) {
-  if (extra !== undefined) st.detail = extra;
+// Browser/Android back gesture walks back through the screens instead of leaving the site.
+let navStack = [{ s: 'menu' }];
+function prep(s) {   // side effects of arriving on a screen; may redirect (returns the screen to show)
   if (s === 'detail') { st.draft = {}; optsOf(st.detail || capNames()[0]).forEach(o => { st.draft[o.name] = qty(o.name); }); }
   if (s === 'pickup' && st.date && st.slot && !slotStillOk()) { st.slot = null; st.gone = true; }
   if ((s === 'details' || s === 'review') && !slotStillOk()) { if (st.slot) st.gone = true; st.slot = null; s = 'pickup'; }
+  return s;
+}
+function go(s, extra) {
+  if (extra !== undefined) st.detail = extra;
+  s = prep(s);
+  const prev = navStack[navStack.length - 2];
+  if (prev && prev.s === s && (s !== 'detail' || prev.d === st.detail)) { history.back(); return; }   // popstate shows it
+  if (s === st.screen && s !== 'detail') { render(); scrollTo(0, 0); return; }
+  navStack.push({ s: s, d: st.detail }); history.pushState({ n: navStack.length }, '');
   st.screen = s; render(); scrollTo(0, 0);
 }
+function showDone() { navStack.push({ s: 'done' }); history.pushState({ n: navStack.length }, ''); st.screen = 'done'; render(); scrollTo(0, 0); }
+function resetOrder() { st.q = {}; st.date = null; st.slot = null; st.notes = ''; st.result = null; st.flash = ''; st.gone = false; }
+addEventListener('popstate', e => {
+  const n = (e.state && e.state.n) || 1;
+  while (navStack.length > n) navStack.pop();
+  const cur = navStack[navStack.length - 1]; if (!cur) return;
+  if (st.result && cur.s !== 'done') {   // the order is finished: never step back into it
+    if (st.mode === 'manage') { location.reload(); return; }
+    resetOrder(); navStack = [{ s: 'menu' }]; history.replaceState({ n: 1 }, ''); st.screen = 'menu'; render(); scrollTo(0, 0); return;
+  }
+  st.detail = cur.d; const s = prep(cur.s); if (s !== cur.s) cur.s = s;
+  st.screen = s; render(); scrollTo(0, 0);
+});
+try { history.replaceState({ n: 1 }, ''); } catch (e) { /* ignore */ }
 const nextAfterPickup = () => st.mode === 'manage' ? 'review' : 'details';
 const backFromReview = () => st.mode === 'manage' ? 'pickup' : 'details';
 function langBtns() { return `<div class="lang"><button data-lang="en" class="${st.lang === 'en' ? 'on' : ''}">EN</button><button data-lang="zh" class="${st.lang === 'zh' ? 'on' : ''}">中文</button></div>`; }
@@ -641,7 +665,7 @@ async function placeOrder() {
     if (ex && ex.found) { const go2 = await modal({ title: t('mMerge'), text: t('mergeMsg'), buttons: [{ label: t('cont'), v: true }, { label: t('goBack'), g: true, v: false }] }); if (!go2) return; }
     for (let attempt = 0; attempt < 2; attempt++) {
       const res = await busyCall(t('placing'), 'submitOrder', { data: { name: st.name.trim(), email: st.email.trim(), phone: st.phone, pickupDate: st.date, pickupTime: st.slot, notes: st.notes, reminder: !!st.reminder, items: itemsPayload() } }, 40000);
-      if (res && res.success) { st.result = { kind: 'placed', when: pickTxt(), cart: res.mergedItems || cartQty(), reminder: st.reminder }; clearTimeout(weekTimer); st.screen = 'done'; render(); scrollTo(0, 0); return; }
+      if (res && res.success) { st.result = { kind: 'placed', when: pickTxt(), cart: res.mergedItems || cartQty(), reminder: st.reminder }; clearTimeout(weekTimer); showDone(); return; }
       const r = await showFailure(res || { network: true });
       if (r === 'retry') continue;
       if (r !== 'moved') afterFailure(res || {});
@@ -658,7 +682,7 @@ async function saveChanges() {
   try {
     for (let attempt = 0; attempt < 2; attempt++) {
       const res = await busyCall(t('saving'), 'updateOrder', { token: st.token, data: { pickupDate: st.date, pickupTime: st.slot, notes: st.notes, reminder: !!st.reminder, items: itemsPayload() } }, 40000);
-      if (res && res.success) { st.result = { kind: 'updated', when: pickTxt(), cart: cartQty(), reminder: st.reminder }; st.screen = 'done'; render(); scrollTo(0, 0); return; }
+      if (res && res.success) { st.result = { kind: 'updated', when: pickTxt(), cart: cartQty(), reminder: st.reminder }; showDone(); return; }
       const r = await showFailure(res || { network: true });
       if (r === 'retry') continue;
       if (r !== 'moved') afterFailure(res || {});
@@ -674,7 +698,7 @@ async function doCancel() {
   st.busy = true;
   try {
     const res = await busyCall(t('cancelling'), 'cancelOrder', { token: st.token }, 40000);
-    if (res && res.success) { st.result = { kind: 'cancelled' }; st.screen = 'done'; render(); scrollTo(0, 0); return; }
+    if (res && res.success) { st.result = { kind: 'cancelled' }; showDone(); return; }
     await showFailure(res || { network: true });
   } finally { st.busy = false; }
 }
@@ -697,7 +721,7 @@ document.addEventListener('click', e => {
   if (d.act === 'save') return saveChanges();
   if (d.act === 'cancel') return doCancel();
   if (d.act === 'editTime') return go('pickup');
-  if (d.act === 'again') { st.q = {}; st.date = null; st.slot = null; st.notes = ''; st.result = null; st.flash = ''; st.gone = false; st.screen = 'menu'; render(); scrollTo(0, 0); refreshWeek(); scheduleWeek(); }
+  if (d.act === 'again') { location.href = location.pathname; return; }   // fresh start
 });
 document.addEventListener('change', e => {
   const a = e.target.closest('input[data-dqi]'); if (a) return setDraft(a.dataset.dqi, a.value);
