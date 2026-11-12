@@ -115,12 +115,12 @@ button{font:inherit;cursor:pointer;color:inherit}
 .sugbox b{display:block;font-size:13px;color:#34542b;margin-bottom:8px}
 .sgs{display:flex;flex-wrap:wrap;gap:8px}
 .sgp{border:1.5px solid var(--open);background:#fff;color:var(--open);border-radius:999px;padding:8px 13px;font-weight:700;font-size:13px}
-.dcard{margin:12px 16px 0;background:var(--card);border:1px solid var(--g);border-radius:16px;padding:14px 16px}
-.dcard h3{margin:0 0 8px;font:700 19px Georgia,serif;color:var(--m)}
-.dcard p{margin:0 0 6px;line-height:1.4}
-.dcard small{display:block;color:var(--mu);font-size:12px;margin-top:4px}
-.note.sub{background:transparent;border-style:dashed;font-size:12.5px;line-height:1.45;padding:10px 14px}
-.note.sub b{display:block;font-size:13px;color:var(--mu);margin-bottom:2px}
+.dcard{margin:10px 16px 0;background:var(--card);border:1px solid var(--g);border-radius:14px;padding:10px 14px}
+.dcard h3{margin:0 0 3px;font:700 17px Georgia,serif;color:var(--m)}
+.dcard p{margin:0;font-size:14px;line-height:1.35}
+.dcard small{display:block;color:var(--mu);font-size:11px;line-height:1.3;margin-top:3px}
+.note.sub{background:transparent;border:1px dashed #f0e5d3;font-size:12px;line-height:1.4;padding:7px 14px}
+.note.sub b{display:block;font-size:12.5px;color:var(--mu);margin-bottom:1px}
 </style>
 </head>
 <body>
@@ -141,7 +141,7 @@ const S = {
   tapHint:'Tap any item to choose how many.',pickChk:'Times are checked against your whole order.',pickGone:'Your order changed, so please choose a time again.',
   na1:'{i} not available',naN:'{n} items not available',partT:'Not everything is available then',partP:'{i} isn\'t available at that time. You can keep this time without it, or choose another time.',
   partLock:'{i} can no longer be ordered for that day (the {t} cutoff has passed). You can keep this time without it, or choose another time.',
-  keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',noteT:'A quick note before ordering',noteP:'Choose your quantity and available options when viewing a product. Availability varies by pickup time. For large orders, please text us at {ph}.',dTitle:'Mix & Match {n}+ Buns & Save!',dA:'Buy any {n} or more eligible buns and enjoy ',dB:'{p} each',dC:' (regularly {c}).',dSave:'Save {s} on every {n} buns!',dFine:'Mix and match eligible varieties. {x} excluded.',from:'From',chooseSize:'Choose size',or:' or ',sugT:'Some times are full. These times fit your whole order:',addOrder:'Add to order',updateOrder:'Update order',removeItem:'Remove from order',inOrder:'In your order ✓',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
+  keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',noteT:'A quick note before ordering',noteP:'Choose your quantity and available options when viewing a product. Availability varies by pickup time. For large orders, please text us at {ph}.',dTitle:'Mix & Match {n}+ Buns & Save!',dA:'Buy any {n}+ eligible buns and enjoy ',dB:'{p} each',dC:' (regularly {c}).',dSave:'Save {s} on every {n} buns!',dFine:'Mix and match eligible varieties. {x} excluded.',from:'From',chooseSize:'Choose size',or:' or ',sugT:'Some times are full. These times fit your whole order:',addOrder:'Add to order',updateOrder:'Update order',removeItem:'Remove from order',inOrder:'In your order ✓',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
   cutInfoT:'Order by {t} the night before',cutInfo:'After {t}, this item can no longer be added to or changed in your order for next-day pickup.',
   sub:'Subtotal',disc2:'Bun discount applied',est:'Estimated total',
   pick:'Choose pickup time',pickT:'Pickup Date & Time',pickSub:'Pick a day and a time. Pre-orders are open for the next 7 days.',closed:'Closed',
@@ -482,7 +482,7 @@ function discInfo() {
 const discLine = () => { const d = discInfo(); return esc(t('dA', d)) + '<b>' + esc(t('dB', d)) + '</b>' + esc(t('dC', d)); };
 function discCard() {
   const d = discInfo();
-  return `<div class="dcard"><h3>${esc(t('dTitle', d))}</h3><p>${discLine()}</p><p><b>${esc(t('dSave', d))}</b></p>${d.x ? `<small>${esc(t('dFine', d))}</small>` : ''}</div>`;
+  return `<div class="dcard"><h3>${esc(t('dTitle', d))}</h3><p>${discLine()} <b>${esc(t('dSave', d))}</b></p>${d.x ? `<small>${esc(t('dFine', d))}</small>` : ''}</div>`;
 }
 function scMenu() {
   const S0 = st.cfg.settings, caps = capNames(), bunCap = caps.find(c => sectionOf(c) === 'Buns'), bun = bunCap ? optsOf(bunCap)[0] : null;
