@@ -383,17 +383,23 @@ function slotStillOk() {
   if (!d || !sd || d.closed) return true;                       // no data to judge with: the server decides
   return !misfitsOf(d, sd, unitsByCap(cartQty())).length;
 }
-async function pickSlot(dateK, label, skipFresh) {
-  if (st.checking) return; st.checking = true; showBusy(t('checking'));
-  try { if (!skipFresh || Date.now() - lastWeekAt > 5000) await refreshWeek(8000); } finally { st.checking = false; hideBusy(); }
-  if (st.screen === 'pickup') render();   // show the fresh availability behind any popup
+// Picking a time is instant (uses the availability already on screen). The page re-checks quietly
+// in the background and only interrupts if the time turned out to be taken in the meantime.
+async function pickSlot(dateK, label) {
+  if (!st.week) { showBusy(t('checking')); try { await refreshWeek(8000); } finally { hideBusy(); } }   // nothing to judge by yet
+  const ok = await decideSlot(dateK, label);
+  if (ok) refreshWeek(8000).then(async got => {
+    if (got && st.date === dateK && st.slot === label && st.screen === 'pickup' && !slotStillOk()) { st.slot = null; render(); await decideSlot(dateK, label); }
+  });
+}
+async function decideSlot(dateK, label) {   // returns true when the time was accepted
   const d = dayData(dateK), sd = slotData(dateK, label);
-  if (!d || d.closed) return info(t('mClosed'), t('closedDay'));
-  if (!sd) return info(t('mHeads'), t('netErr'));
+  if (!d || d.closed) { await info(t('mClosed'), t('closedDay')); return false; }
+  if (!sd) { await info(t('mHeads'), t('netErr')); return false; }
   st.flash = '';
   const cart = cartQty(), units = unitsByCap(cart), cs = Object.keys(units);
   if (st.mode === 'manage' && st.order && (st.order.lockedOptions || []).some(n => (st.order.items[n] || 0) > 0) && dateK !== st.order.pickupDate)
-    return info(t('mLocked'), t('lockedChange', { items: earlyCaps().map(iName).join(', '), phone: phoneNo() }));
+    { await info(t('mLocked'), t('lockedChange', { items: earlyCaps().map(iName).join(', '), phone: phoneNo() })); return false; }
   const mf = misfitsOf(d, sd, units);
   if (mf.length) {
     const names = mf.map(iName).join(', '), lc = lockedCaps(d);
@@ -403,12 +409,13 @@ async function pickSlot(dateK, label, skipFresh) {
       const r = await modal({ title: t('partT'), paras: [onlyLocked ? t('partLock', { i: names, t: cutoffTime() }) : t('partP', { i: names })], sug: sg,
         buttons: [{ label: t('keepWithout', { i: names }), v: 'keep' }, { label: t('other'), g: true, v: null }] });
       if (r === 'keep') { opts().filter(o => mf.indexOf(o.capItem) >= 0).forEach(o => setQ(o.name, 0)); st.date = dateK; st.slot = label; st.gone = false; st.flash = t('removed', { i: names }); render(); }
-      else if (r && r.suggest) await pickSlot(r.suggest.date, r.suggest.slot, true);
-      return;
+      else if (r && r.suggest) await pickSlot(r.suggest.date, r.suggest.slot);
+      return r === 'keep';
     }
-    return info(t('fullT'), t('fullP', { i: names }), sg);
+    await info(t('fullT'), t('fullP', { i: names }), sg); return false;
   }
   st.date = dateK; st.slot = label; st.gone = false; render();
+  return true;
 }
 
 /* ===================== QUANTITY ===================== */
@@ -653,7 +660,7 @@ async function showFailure(res) {
   let sug = [];
   if (res.code === 'CAPACITY' && st.date && st.slot) sug = suggest(unitsByCap(cartQty()), st.date, st.slot, 3);
   const r = await modal({ title, text: sug.length ? textSug : text, sug, buttons: [{ label: t('close'), g: true, v: null }] });
-  if (r && r.suggest) { await pickSlot(r.suggest.date, r.suggest.slot, true); return st.date === r.suggest.date && st.slot === r.suggest.slot ? 'moved' : null; }
+  if (r && r.suggest) { await pickSlot(r.suggest.date, r.suggest.slot); return st.date === r.suggest.date && st.slot === r.suggest.slot ? 'moved' : null; }
   return null;
 }
 function afterFailure(res) {
