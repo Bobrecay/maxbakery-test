@@ -119,6 +119,8 @@ button{font:inherit;cursor:pointer;color:inherit}
 .dcard h3{margin:0 0 8px;font:700 19px Georgia,serif;color:var(--m)}
 .dcard p{margin:0 0 6px;line-height:1.4}
 .dcard small{display:block;color:var(--mu);font-size:12px;margin-top:4px}
+.note.sub{background:transparent;border-style:dashed;font-size:12.5px;line-height:1.45;padding:10px 14px}
+.note.sub b{display:block;font-size:13px;color:var(--mu);margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -139,7 +141,7 @@ const S = {
   tapHint:'Tap any item to choose how many.',pickChk:'Times are checked against your whole order.',pickGone:'Your order changed, so please choose a time again.',
   na1:'{i} not available',naN:'{n} items not available',partT:'Not everything is available then',partP:'{i} isn\'t available at that time. You can keep this time without it, or choose another time.',
   partLock:'{i} can no longer be ordered for that day (the {t} cutoff has passed). You can keep this time without it, or choose another time.',
-  keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',dTitle:'Mix & Match {n}+ Buns & Save!',dA:'Buy any {n} or more eligible buns and enjoy ',dB:'{p} each',dC:' (regularly {c}).',dSave:'Save {s} on every {n} buns!',dFine:'Mix and match eligible varieties. {x} excluded.',from:'From',chooseSize:'Choose size',or:' or ',sugT:'Some times are full. These times fit your whole order:',addOrder:'Add to order',updateOrder:'Update order',removeItem:'Remove from order',inOrder:'In your order ✓',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
+  keepWithout:'Keep this time without {i}',removed:'Removed {i} from your order.',viewOrder:'View order',noteT:'A quick note before ordering',noteP:'Choose your quantity and available options when viewing a product. Availability varies by pickup time. For large orders, please text us at {ph}.',dTitle:'Mix & Match {n}+ Buns & Save!',dA:'Buy any {n} or more eligible buns and enjoy ',dB:'{p} each',dC:' (regularly {c}).',dSave:'Save {s} on every {n} buns!',dFine:'Mix and match eligible varieties. {x} excluded.',from:'From',chooseSize:'Choose size',or:' or ',sugT:'Some times are full. These times fit your whole order:',addOrder:'Add to order',updateOrder:'Update order',removeItem:'Remove from order',inOrder:'In your order ✓',items:'items',item:'item',yourOrder:'Your Order',noItems:'Your order is empty',noItemsSub:'Add something tasty from the menu.',
   cutInfoT:'Order by {t} the night before',cutInfo:'After {t}, this item can no longer be added to or changed in your order for next-day pickup.',
   sub:'Subtotal',disc2:'Bun discount applied',est:'Estimated total',
   pick:'Choose pickup time',pickT:'Pickup Date & Time',pickSub:'Pick a day and a time. Pre-orders are open for the next 7 days.',closed:'Closed',
@@ -177,7 +179,7 @@ const S = {
   tapHint:'點選任何產品即可選擇數量。',pickChk:'時段會按你整張訂單檢查。',pickGone:'訂單已更改，請重新選擇時間。',
   na1:'{i} 無法供應',naN:'{n} 款產品無法供應',partT:'並非所有產品都能在該時段提供',partP:'{i} 在該時段無法供應。你可以不要它而保留此時間，或選擇其他時間。',
   partLock:'{i} 已過 {t} 截單時間，無法再訂該日。你可以不要它而保留此時間，或選擇其他時間。',
-  keepWithout:'保留此時間，不要 {i}',removed:'已從訂單移除 {i}。',viewOrder:'查看訂單',dTitle:'任選 {n} 個或以上麵包，更優惠！',dA:'任選 {n} 個或以上指定麵包，每個只需 ',dB:'{p}',dC:'（原價 {c}）。',dSave:'每 {n} 個麵包可節省 {s}！',dFine:'可混合搭配指定款式。{x} 不包括在內。',from:'由',chooseSize:'選擇大小',or:'或',sugT:'部分時段已滿。以下時間適合你整張訂單：',addOrder:'加入訂單',updateOrder:'更新訂單',removeItem:'從訂單移除',inOrder:'已在訂單中 ✓',items:'件',item:'件',yourOrder:'你的訂單',noItems:'訂單是空的',noItemsSub:'從餐單加入美味麵包吧。',
+  keepWithout:'保留此時間，不要 {i}',removed:'已從訂單移除 {i}。',viewOrder:'查看訂單',noteT:'訂購前小提示',noteP:'查看產品時可選擇數量及可選項目。供應情況會因取貨時間而異。大量訂購請發短訊至 {ph}。',dTitle:'任選 {n} 個或以上麵包，更優惠！',dA:'任選 {n} 個或以上指定麵包，每個只需 ',dB:'{p}',dC:'（原價 {c}）。',dSave:'每 {n} 個麵包可節省 {s}！',dFine:'可混合搭配指定款式。{x} 不包括在內。',from:'由',chooseSize:'選擇大小',or:'或',sugT:'部分時段已滿。以下時間適合你整張訂單：',addOrder:'加入訂單',updateOrder:'更新訂單',removeItem:'從訂單移除',inOrder:'已在訂單中 ✓',items:'件',item:'件',yourOrder:'你的訂單',noItems:'訂單是空的',noItemsSub:'從餐單加入美味麵包吧。',
   cutInfoT:'請於前一晚 {t} 前訂購',cutInfo:'{t} 後，此產品無法再加入或更改次日取貨的訂單。',
   sub:'小計',disc2:'已套用麵包優惠',est:'預計總額',
   pick:'選擇取貨時間',pickT:'取貨日期及時間',pickSub:'請選擇日期及時間。現時可預訂未來 7 天。',closed:'休息',
@@ -489,7 +491,7 @@ function scMenu() {
     ? `<div class="note" style="margin-top:4px">${esc(t('sameDay'))}</div>`
     : `<div class="hero"><img src="images/ai-pineapple-bun.webp" alt=""><div><h1>${esc(t('heroH'))}</h1><p>${esc(t('heroP'))}</p></div></div>${bannerHtml()}`;
   return (st.mode === 'manage' ? topBar(t('editT'), 'manage') : topBar()) + intro +
-    discCard() + `<div class="note">${esc(t('tapHint'))} ${esc(t('limited', { ph: phoneNo() }))}</div>` + secs;
+    discCard() + `<div class="note sub"><b>${esc(t('noteT'))}</b>${esc(t('noteP', { ph: phoneNo() }))}</div>` + secs;
 }
 function scDetail() {
   const caps = capNames(), c = st.detail || caps[0], os = optsOf(c), cu = cutOf(c), o0 = os[0];
