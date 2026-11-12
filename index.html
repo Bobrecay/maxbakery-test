@@ -611,9 +611,13 @@ function dock() {
   if (s === 'manage') return editable ? `<button class="cta danger c" data-act="cancel">${esc(t('cancelO'))}</button><button class="cta c" data-go="menu">${esc(t('editItems'))}</button>` : '';
   return '';
 }
+let lastShown = null;
 function render() {
   const f = { menu: scMenu, detail: scDetail, cart: scCart, pickup: scPickup, details: scDetails, review: scReview, done: scDone, manage: scManage, loading: () => `<div class="load" style="padding-top:90px">${esc(t('loadingOrder'))}</div>` }[st.screen];
-  const y = scrollY; $('app').innerHTML = f(); $('dock').innerHTML = dock(); $('dock').className = 'dock' + (st.screen === 'detail' ? ' col' : ''); scrollTo(0, y);
+  const y = scrollY, dEl = document.querySelector('.days'), dLeft = dEl ? dEl.scrollLeft : null, same = lastShown === st.screen; lastShown = st.screen;
+  $('app').innerHTML = f(); $('dock').innerHTML = dock();
+  const nd = document.querySelector('.days');   // keep the day strip where the person scrolled it
+  if (nd) { if (same && dLeft !== null) nd.scrollLeft = dLeft; else { const sel = nd.querySelector('.dc.sel'); if (sel) nd.scrollLeft = Math.max(0, sel.offsetLeft - nd.clientWidth / 2 + sel.offsetWidth / 2); } } $('dock').className = 'dock' + (st.screen === 'detail' ? ' col' : ''); scrollTo(0, y);
   document.documentElement.lang = st.lang === 'zh' ? 'zh-Hant' : 'en';
 }
 
