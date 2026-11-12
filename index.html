@@ -41,7 +41,6 @@ button{font:inherit;cursor:pointer;color:inherit}
 .pc .pr{color:var(--mu);font-size:13px;margin-top:2px}.pc .pr b{color:var(--ink)}
 .pc .opt{display:none;font-size:11.5px;line-height:1.3;color:var(--mu);margin-top:1px;min-height:15px}
 .grid.hasopt .opt{display:block}
-@media(max-width:400px){.grid.hasopt .opt{min-height:30px}}
 .pc .meta{font-size:11px;line-height:1.3;font-weight:600;color:var(--almost);margin-top:5px}
 .stp{display:flex;align-items:center;justify-content:space-between;background:var(--m);border-radius:999px;padding:3px;color:#fff}
 .stp button{width:34px;height:34px;border-radius:50%;border:0;background:#fff;color:var(--m);font-size:20px;line-height:1;padding:0}
@@ -469,7 +468,7 @@ const dstepper = n => `<div class="stp lt"><button data-dq="${esc(n)}" data-d="-
 const stepper = (n, cls) => `<div class="stp ${cls || ''}"><button data-q="${esc(n)}" data-d="-1" aria-label="−">−</button><input type="number" inputmode="numeric" min="0" max="999" value="${qty(n)}" data-qi="${esc(n)}" aria-label="Quantity"><button data-q="${esc(n)}" data-d="1" aria-label="+">+</button></div>`;
 function card(c) {
   const os = optsOf(c), o = os[0], cu = cutOf(c), multi = os.length > 1, total = os.reduce((a, x) => a + qty(x.name), 0);
-  const lbls = os.slice().sort((a, b) => a.units - b.units).map(vLabel).filter(Boolean).map(s => st.lang === 'zh' ? s : s.toLowerCase()), optTxt = multi ? ((st.lang === 'zh' ? lbls.join(t('or')) : lbls.slice(0, -1).join(', ') + (lbls.length > 1 ? t('or') : '') + lbls[lbls.length - 1]).replace(/^./, ch => ch.toUpperCase()) + ' · ' + t('chooseSize')) : '';
+  const lbls = os.slice().sort((a, b) => a.units - b.units).map(vLabel).filter(Boolean).map(s => st.lang === 'zh' ? s : s.toLowerCase()), optTxt = multi ? ((st.lang === 'zh' ? lbls.join(t('or')) : lbls.slice(0, -1).join(', ') + (lbls.length > 1 ? t('or') : '') + lbls[lbls.length - 1]).replace(/^./, ch => ch.toUpperCase())) : '';
   const pr = multi ? `${esc(t('from'))} <b>${money(Math.min(...os.map(x => x.cost)))}</b>` : (sectionOf(c) === 'Buns' ? `<b>${money(o.cost)}</b> ${esc(t('each'))}` : `<b>${money(o.cost)}</b>`);
   return `<button class="pc ${total ? 'has' : ''}" data-detail="${esc(c)}"><div class="imw"><img src="${imgSrc(o)}" alt="" loading="lazy">${total ? `<span class="qb">${total}</span>` : ''}</div><div class="bd"><h4>${esc(iName(c))}</h4><div class="pr">${pr}</div><div class="opt">${esc(optTxt)}</div><div class="meta">${cu ? '🕘 ' + esc(t('cut', { t: cu.cutoffText })) : ''}</div></div></button>`;
 }
