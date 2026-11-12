@@ -13,7 +13,10 @@ body{background:#e9dcc6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sa
 button{font:inherit;cursor:pointer;color:inherit}
 .app{position:relative;max-width:480px;margin:0 auto;background:var(--paper);min-height:100vh;padding-bottom:110px;box-shadow:0 0 40px #3a200f33}
 .top{display:flex;align-items:center;gap:10px;padding:14px 16px 8px}
-.top h2{margin:0;flex:1;text-align:center;font-size:19px;font-family:Georgia,serif;color:var(--dm)}
+.top{position:relative;min-height:64px}
+.top h2{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);margin:0;padding:0 56px;text-align:center;font-size:19px;font-family:Georgia,serif;color:var(--dm);pointer-events:none}
+.top.mg h2{padding:0 104px}
+.top .bag,.top .lang{margin-left:auto}
 .ib{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:18px;display:grid;place-items:center;position:relative;flex:none}
 .ib .bd{position:absolute;top:-4px;right:-4px;background:var(--m);color:#fff;font-size:11px;font-weight:700;border-radius:999px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 4px}
 .lang{display:flex;gap:4px;flex:none}.lang button{border:1px solid var(--g);background:#fff;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}.lang button.on{background:var(--g);color:var(--dm)}
@@ -485,7 +488,7 @@ const backFromReview = () => st.mode === 'manage' ? 'pickup' : 'details';
 function langBtns() { return `<div class="lang"><button data-lang="en" class="${st.lang === 'en' ? 'on' : ''}">EN</button><button data-lang="zh" class="${st.lang === 'zh' ? 'on' : ''}">中文</button></div>`; }
 function topBar(title, back, noBag) {
   const n = totalCount();
-  return `<div class="top">${back ? `<button class="ib" data-go="${back}" aria-label="Back">‹</button>` : ''}${title ? `<h2>${esc(title)}</h2>` : `<div style="flex:1"><div class="serif" style="font-size:22px;font-weight:700;color:var(--dm)">${esc(t('brand'))}</div><div style="font-size:12px;color:var(--mu)">${esc(t('tag'))}</div></div>`}${title ? '' : langBtns()}${noBag ? '' : `<button class="ib" data-go="cart" aria-label="Order">🛍${n ? `<span class="bd">${n}</span>` : ''}</button>`}</div>`;
+  return `<div class="top">${back ? `<button class="ib" data-go="${back}" aria-label="Back">‹</button>` : ''}${title ? `<h2>${esc(title)}</h2>` : `<div style="flex:1"><div class="serif" style="font-size:22px;font-weight:700;color:var(--dm)">${esc(t('brand'))}</div><div style="font-size:12px;color:var(--mu)">${esc(t('tag'))}</div></div>`}${title ? '' : langBtns()}${noBag ? '' : `<button class="ib bag" data-go="cart" aria-label="Order">🛍${n ? `<span class="bd">${n}</span>` : ''}</button>`}</div>`;
 }
 const stepBar = s => { const f = FLOW(), i = f.indexOf(s); return `<div class="steps">${f.map((x, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>`; };
 const dq = n => st.draft[n] || 0;
@@ -586,7 +589,7 @@ function scDone() {
 }
 function scManage() {
   const o = st.order || {}, locked = (o.lockedOptions || []).filter(n => (o.items[n] || 0) > 0);
-  return `<div class="top"><h2>${esc(t('manageT'))}</h2>${langBtns()}</div><div class="note" style="margin-top:4px">${esc(t('sameDay'))}</div>` +
+  return `<div class="top mg"><h2>${esc(t('manageT'))}</h2>${langBtns()}</div><div class="note" style="margin-top:4px">${esc(t('sameDay'))}</div>` +
    (locked.length ? `<div class="info" style="margin:12px 16px 0"><span>🕘</span><div>${esc(t('lockedChange', { items: [...new Set(locked.map(n => iName(optBy(n).capItem)))].join(st.lang === 'zh' ? '、' : ' & '), phone: phoneNo() }))}</div></div>` : '') +
    `<div class="box pk" style="margin-top:12px"><div><b style="font-size:13px;color:var(--mu)">${esc(t('pu'))}</b><div>${esc(pickTxt())}</div></div>${o.editable ? `<a data-act="editTime">${esc(t('change'))}</a>` : ''}</div>` + summaryBox() +
    (st.notes ? `<div class="box" style="font-size:14px"><i>${esc(st.notes)}</i></div>` : '');
