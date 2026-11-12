@@ -126,7 +126,7 @@ const DEFAULT_CFG = {"options":[{"name":"Pineapple Bun","cost":2.2,"cutoffMin":n
 /* ===================== TEXT ===================== */
 const S = {
  en:{brand:'Max Bakery',tag:'Pre-order · Markham, ON',heroH:'Freshly baked, just for you',heroP:'Pre-order your favourites for pickup.',
-  left:'left to order for tomorrow',leftSub:'Orders for tomorrow close at midnight tonight. Closed Tuesdays.',
+  left:'Ordering for tomorrow closes in {t}',leftSub:"Place your order by midnight tonight for next-day pickup. We're closed on Tuesdays.",
   disc:'Buy {n}+ buns and each one is {p} (instead of {c}).',limited:'Quantities are limited for each time slot. For large orders, please text Max at {ph}.',
   secBuns:'Buns',secDinner:'Dinner Buns',secLoaves:'Loaves',each:'each',cut:'Order by {t}',
   tapHint:'Tap any item to choose how many.',pickChk:'Times are checked against your whole order.',pickGone:'Your order changed, so please choose a time again.',
@@ -164,7 +164,7 @@ const S = {
   mergeMsg:'You already have an order for this pickup time. The items you chose will be added to it. Continue?',
   cantCancel:'To cancel this order, please text Max at {phone}.',txtMax:'Questions or large orders: text Max at {phone}'},
  zh:{brand:'Max Bakery',tag:'預訂 · 萬錦',heroH:'新鮮出爐，專為你而做',heroP:'預訂你喜愛的麵包，到店自取。',
-  left:'可預訂明天',leftSub:'明天的訂單於今晚午夜截止。逢星期二休息。',
+  left:'明天取貨的訂購將於 {t} 後截止',leftSub:'請於今晚午夜前下單，以便明天取貨。逢星期二休息。',
   disc:'購買 {n} 個或以上麵包，每個只需 {p}（原價 {c}）。',limited:'每個時段數量有限。大量訂購請致電／短訊 Max：{ph}。',
   secBuns:'麵包',secDinner:'餐包',secLoaves:'方包',each:'每個',cut:'{t} 前訂購',
   tapHint:'點選任何產品即可選擇數量。',pickChk:'時段會按你整張訂單檢查。',pickGone:'訂單已更改，請重新選擇時間。',
@@ -266,7 +266,7 @@ function msToMidnight() {
 }
 function bannerHtml() {
   const ms = msToMidnight(), h = Math.floor(ms / 36e5), m = Math.floor(ms % 36e5 / 6e4);
-  return `<div class="banner" id="cdBanner"><b>⏰ ${esc(h + t('h') + ' ' + m + t('m') + ' ' + t('left'))}</b>${esc(t('leftSub'))}</div>`;
+  return `<div class="banner" id="cdBanner"><b>⏰ ${esc(t('left', { t: h + t('h') + ' ' + m + t('m') }))}</b>${esc(t('leftSub'))}</div>`;
 }
 setInterval(() => { const b = $('cdBanner'); if (b) b.outerHTML = bannerHtml(); }, 30000);
 
