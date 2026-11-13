@@ -69,7 +69,7 @@ button{font:inherit;cursor:pointer;color:inherit}
 .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0}.row.tot{border-top:1px dashed #cdb98c;margin-top:6px;padding-top:10px;font-size:19px;font-weight:700;color:var(--dm)}
 .good{color:var(--open);font-weight:600;font-size:13px}
 .fine{color:var(--mu);font-size:12px;margin-top:8px;line-height:1.45}
-.empty{text-align:center;color:var(--mu);padding:46px 24px}.empty .e{font-size:44px}
+.empty{text-align:center;color:var(--mu);padding:46px 24px}.empty .eimg{width:112px;height:112px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;box-shadow:0 0 0 6px #fffaf3,0 0 0 7px var(--line)}
 .days{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 8px;scrollbar-width:none}.days::-webkit-scrollbar{display:none}
 .dc{flex:none;width:58px;border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:8px 0;text-align:center}
 .dc small{display:block;color:var(--mu);font-size:12px}.dc b{font-size:20px;font-family:Georgia,serif;color:var(--dm)}
@@ -537,7 +537,7 @@ function scDetail() {
 }
 function scCart() {
   const p = price(cartQty());
-  if (!p.lines.length) return topBar(t('yourOrder'), 'menu', true) + stepBar('cart') + `<div class="empty"><div class="e">🧺</div><b>${esc(t('noItems'))}</b><p>${esc(t('noItemsSub'))}</p></div>`;
+  if (!p.lines.length) return topBar(t('yourOrder'), 'menu', true) + stepBar('cart') + `<div class="empty"><img class="eimg" src="images/ai-pineapple-bun.webp" alt=""><b>${esc(t('noItems'))}</b><p>${esc(t('noItemsSub'))}</p></div>`;
   const lines = p.lines.map(l => `<div class="line"><img src="${imgSrc(l.o)}" alt=""><div class="t"><b>${esc(iName(l.o.capItem))}</b><span>${esc(vLabel(l.o) || t('each'))} · ${money(l.unit)}</span></div>${stepper(l.o.name, 'lt')}<div class="lp">${money(l.line)}</div></div>`).join('');
   const cuts = [...new Set(p.lines.filter(l => l.o.cutoffMin != null).map(l => iName(l.o.capItem)))];
   return topBar(t('yourOrder'), 'menu', true) + stepBar('cart') + lines + (cuts.length ? `<div class="info" style="margin:14px 16px 0"><span>🕘</span><div>${esc(cuts.join(st.lang === 'zh' ? '、' : ' & '))}: ${esc(t('cutInfoT', { t: cutoffTime() }))}</div></div>` : '') +
