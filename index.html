@@ -125,6 +125,8 @@ button{font:inherit;cursor:pointer;color:inherit}
 .note.sub{background:transparent;border:1px dashed #e3d3b9;font-size:12px;line-height:1.4;padding:7px 14px}
 .note.sub b{display:block;font-size:12.5px;color:var(--mu);margin-bottom:1px}
 .sp2{width:30px;height:30px;margin:0 auto 12px;border:4px solid #e6dcc0;border-top-color:var(--m);border-radius:50%;animation:spin .8s linear infinite}
+
+.sh{margin:18px 18px -8px;font-size:13px;font-weight:700;color:var(--mu);letter-spacing:.02em}
 </style>
 </head>
 <body>
@@ -155,7 +157,7 @@ const S = {
   placed:'Order Placed!',placedP:'Thank you for your pre-order. We will have your items ready at the selected time.',placedP2:'A confirmation email in English and Chinese is on its way. It includes a link to view, change, or cancel your order.',
   updated:'Order Updated!',updatedP:"Thank you! Your order has been successfully updated. We'll have your items ready at the selected pickup time.",updatedP2:'A confirmation email in English and Chinese is on its way with your updated order details.',
   back:'Back to menu',newOrder:'Place another order',manageT:'Your Order',editT:'Change your order',
-  sameDay:'Orders can be changed or cancelled until the day before pickup.',editItems:'Edit items',cancelO:'Cancel order',
+  sameDayT:'Order changes',sameDay:"You can change or cancel your order up to the day before pickup. Same-day changes and cancellations aren't available.",yourItems:'Your items',editItems:'Edit items',cancelO:'Cancel order',
   cancelQ:'Cancel this order?',cancelT:'This will cancel your entire pre-order.',keep:'Keep my order',yesCancel:'Yes, cancel it',cancelled:'Order cancelled',cancelledP:'Your pre-order has been cancelled. We hope to see you again soon.',notFoundT:'This order has already been cancelled',notFoundP:'This pre-order was previously cancelled.',notFoundQ:"Didn't cancel this order yourself? Please text us at {phone} so we can help.",
   fullT:'That time won\'t work',fullP:"Some items in your order aren't available at that time: {i}. These times work for your entire order:",other:'Choose another time',
   largeT:'Large order?',ok:'OK',close:'Close',retry:'Try again',goBack:'Go back',
@@ -193,7 +195,7 @@ const S = {
   placed:'訂單已提交！',placedP:'多謝你的預訂，我們會於所選時間準備好你的麵包。',placedP2:'中英對照的確認電郵將很快送達，內附查看、更改或取消訂單的連結。',
   updated:'訂單已更新！',updatedP:'多謝！您的訂單已成功更新。我們會在所選的取貨時間備妥您的產品。',updatedP2:'載有更新後訂單詳情的中英對照確認電郵將很快送達。',
   back:'返回餐單',newOrder:'再下一張訂單',manageT:'你的訂單',editT:'更改訂單',
-  sameDay:'取貨前一天或以前可更改或取消訂單。',editItems:'修改產品',cancelO:'取消訂單',
+  sameDayT:'訂單更改',sameDay:'您可在取貨前一天或以前更改或取消訂單。取貨當天無法更改或取消。',yourItems:'您的產品',editItems:'修改產品',cancelO:'取消訂單',
   cancelQ:'取消此訂單？',cancelT:'這會取消你整張預訂單。',keep:'保留訂單',yesCancel:'確定取消',cancelled:'訂單已取消',cancelledP:'你的預訂已取消，期待下次再見。',notFoundT:'此訂單已被取消',notFoundP:'此預訂單之前已被取消。',notFoundQ:'並非您本人取消？請發短訊至 {phone}，我們樂意協助。',
   fullT:'該時段不適用',fullP:'你的訂單中並非所有產品都能在該時段提供：{i}。以下時間適合你整張訂單：',other:'選擇其他時間',
   largeT:'大量訂購？',ok:'好',close:'關閉',retry:'再試一次',goBack:'返回',
@@ -526,7 +528,7 @@ function scMenu() {
   const S0 = st.cfg.settings, caps = capNames(), bunCap = caps.find(c => sectionOf(c) === 'Buns'), bun = bunCap ? optsOf(bunCap)[0] : null;
   const secs = [['Buns', 'secBuns'], ['Loaves', 'secLoaves']].map(([k, tk]) => { const cs = caps.filter(c => sectionOf(c) === k); return cs.length ? `<div class="sec"><h3>${esc(t(tk))}</h3></div><div class="grid ${cs.some(x => optsOf(x).length > 1) ? 'hasopt' : ''}">${cs.map(card).join('')}</div>` : ''; }).join('');
   const intro = st.mode === 'manage'
-    ? `<div class="note" style="margin-top:4px">${esc(t('sameDay'))}</div>`
+    ? `<div class="note" style="margin-top:4px"><b style="display:block">${esc(t('sameDayT'))}</b>${esc(t('sameDay'))}</div>`
     : `<div class="hero"><img src="images/ai-pineapple-bun.webp" alt=""><div><h1>${esc(t('heroH'))}</h1><p>${esc(t('heroP'))}</p></div></div>${bannerHtml()}`;
   return (st.mode === 'manage' ? topBar(t('editT'), 'manage') : topBar()) + intro +
     discCard() + `<div class="note sub"><b>${esc(t('noteT'))}</b>${esc(t('noteP', { ph: phoneNo() }))}</div>` + secs;
@@ -590,7 +592,7 @@ function scReview() {
   const who = st.mode === 'manage'
     ? `<label class="fld" style="margin-top:14px"><span>${esc(t('notes'))}</span><textarea data-f="notes" rows="2">${esc(st.notes)}</textarea></label><label class="chk"><input type="checkbox" data-f="reminder" ${st.reminder ? 'checked' : ''}><span>${esc(t('rem'))}</span></label>`
     : `<div class="box" style="font-size:14px"><b>${esc(st.name)}</b><br><span style="color:var(--mu)">${esc(st.email)} · ${esc(st.phone)}</span>${st.notes ? `<br><i>${esc(st.notes)}</i>` : ''}</div>`;
-  return topBar(t('reviewT'), backFromReview(), true) + stepBar('review') + pickBox(true) + summaryBox() + who;
+  return topBar(t('reviewT'), backFromReview(), true) + stepBar('review') + pickBox(true) + `<div class="sh">${esc(t('yourItems'))}</div>` + summaryBox() + who;
 }
 function scDone() {
   const r = st.result || {}, k = r.kind, tail = `<div class="fine" style="text-align:center;padding:12px 24px">${esc(t('txtMax', { phone: phoneNo() }))}</div>`;
@@ -601,7 +603,7 @@ function scDone() {
 }
 function scManage() {
   const o = st.order || {}, locked = (o.lockedOptions || []).filter(n => (o.items[n] || 0) > 0);
-  return `<div class="top mg"><h2>${esc(t('manageT'))}</h2>${langBtns()}</div><div class="note" style="margin-top:4px">${esc(t('sameDay'))}</div>` +
+  return `<div class="top mg"><h2>${esc(t('manageT'))}</h2>${langBtns()}</div><div class="note" style="margin-top:4px"><b style="display:block">${esc(t('sameDayT'))}</b>${esc(t('sameDay'))}</div>` +
    (locked.length ? `<div class="info" style="margin:12px 16px 0"><span>🕘</span><div>${esc(t('lockedChange', { items: [...new Set(locked.map(n => iName(optBy(n).capItem)))].join(st.lang === 'zh' ? '、' : ' & '), phone: phoneNo() }))}</div></div>` : '') +
    `<div class="box pk" style="margin-top:12px"><div><b style="font-size:13px;color:var(--mu)">${esc(t('pu'))}</b><div>${esc(pickTxt())}</div></div>${o.editable ? `<a data-act="editTime">${esc(t('change'))}</a>` : ''}</div>` + summaryBox() +
    (st.notes ? `<div class="box" style="font-size:14px"><i>${esc(st.notes)}</i></div>` : '');
