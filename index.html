@@ -174,7 +174,7 @@ const S = {
   dPast:'Orders must be placed at least 1 day in advance. Please choose a later date.',dFar:'That date is too far ahead. Please choose one of the dates shown.',
   busyServer:'The server is busy right now. Please try again in a moment.',netErr:'We could not reach the order system. Please check your connection and try again.',
   closedEdit:'This order can no longer be changed online. Please text Max at {phone}.',notFound:'We could not find this order. It may have already been cancelled.',
-  mergeMsg:'You already have an order for this pickup time. The items you chose will be added to it. Continue?',
+  mergeMsg:"You already have an order scheduled for this pickup time. If you continue, the items you've selected will be added to that order instead of creating a separate order.",mergeMsg2:"You'll receive a separate email confirming the updated order.",mergeBtn:'Add to existing order',
   cantCancel:'To cancel this order, please text Max at {phone}.',txtMax:'Questions or large orders: text Max at {phone}'},
  zh:{brand:'Max Bakery',tag:'預訂 · 萬錦',heroH:'新鮮出爐，專為你而做',heroP:'預訂你喜愛的麵包，到店自取。',
   left:'明天取貨的訂購將於 {t} 後截止',leftSub:'請於今晚午夜前下單，以便明天取貨。逢星期二休息。',
@@ -212,7 +212,7 @@ const S = {
   dPast:'請至少提前 1 天下單，請選擇較後日期。',dFar:'日期太遠，請選擇顯示的日期。',
   busyServer:'伺服器繁忙，請稍後再試。',netErr:'無法連接訂購系統，請檢查網絡後再試。',
   closedEdit:'此訂單無法在網上更改。請發短訊給 Max：{phone}。',notFound:'找不到此訂單，可能已被取消。',
-  mergeMsg:'您在此取貨時間已有訂單，您選擇的產品會加入該訂單。是否繼續？',
+  mergeMsg:'您在此取貨時間已有訂單。如繼續，您選擇的產品將加入該訂單，而不會建立另一張訂單。',mergeMsg2:'您會另外收到一封電郵，確認更新後的訂單。',mergeBtn:'加入現有訂單',
   cantCancel:'如需取消此訂單，請發短訊給 Max：{phone}。',txtMax:'查詢或大量訂單：請發短訊給 Max {phone}'}
 };
 
@@ -683,7 +683,7 @@ async function placeOrder() {
   st.busy = true;
   try {
     const ex = await busyCall(t('checking'), 'checkOrderExists', { email: st.email.trim(), phone: st.phone, pickupDate: st.date, pickupTime: st.slot });
-    if (ex && ex.found) { const go2 = await modal({ title: t('mMerge'), text: t('mergeMsg'), buttons: [{ label: t('cont'), v: true }, { label: t('goBack'), g: true, v: false }] }); if (!go2) return; }
+    if (ex && ex.found) { const go2 = await modal({ title: t('mMerge'), paras: [t('mergeMsg'), t('mergeMsg2')], buttons: [{ label: t('mergeBtn'), v: true }, { label: t('goBack'), g: true, v: false }] }); if (!go2) return; }
     for (let attempt = 0; attempt < 2; attempt++) {
       const res = await busyCall(t('placing'), 'submitOrder', { data: { name: st.name.trim(), email: st.email.trim(), phone: st.phone, pickupDate: st.date, pickupTime: st.slot, notes: st.notes, reminder: !!st.reminder, items: itemsPayload() } }, 40000);
       if (res && res.success) { st.result = { kind: 'placed', when: pickTxt(), cart: res.mergedItems || cartQty(), reminder: st.reminder }; clearTimeout(weekTimer); showDone(); return; }
