@@ -153,7 +153,7 @@ const S = {
   details:'Your Details',name:'Name',email:'Email',phone:'Phone',notes:'Notes (optional)',rem:'Email me a reminder at 7:00 AM on pickup day',
   pu:'Pickup',change:'Change',review:'Review Order',reviewT:'Order Summary',place:'Place Order',save:'Save Changes',
   placed:'Order Placed!',placedP:'Thank you for your pre-order. We will have your items ready at the selected time.',placedP2:'A confirmation email in English and Chinese is on its way. It includes a link to view, change, or cancel your order.',
-  updated:'Order updated',updatedP:'Your changes are saved. A new confirmation email is on its way.',
+  updated:'Order Updated!',updatedP:"Thank you! Your order has been successfully updated. We'll have your items ready at the selected pickup time.",updatedP2:'A confirmation email in English and Chinese is on its way with your updated order details.',
   back:'Back to menu',newOrder:'Place another order',manageT:'Your Order',editT:'Change your order',
   sameDay:'Orders can be changed or cancelled until the day before pickup.',editItems:'Edit items',cancelO:'Cancel order',
   cancelQ:'Cancel this order?',cancelT:'This will cancel your entire pre-order.',keep:'Keep my order',yesCancel:'Yes, cancel it',cancelled:'Order cancelled',cancelledP:'Your pre-order has been cancelled. We hope to see you again soon.',notFoundT:'This order has already been cancelled',notFoundP:'This pre-order was previously cancelled.',notFoundQ:"Didn't cancel this order yourself? Please text us at {phone} so we can help.",
@@ -191,7 +191,7 @@ const S = {
   details:'你的資料',name:'姓名',email:'電郵',phone:'電話',notes:'備註（選填）',rem:'取貨當天早上 7:00 以電郵提醒我',
   pu:'取貨',change:'更改',review:'檢查訂單',reviewT:'訂單摘要',place:'確認訂購',save:'儲存更改',
   placed:'訂單已提交！',placedP:'多謝你的預訂，我們會於所選時間準備好你的麵包。',placedP2:'中英對照的確認電郵將很快送達，內附查看、更改或取消訂單的連結。',
-  updated:'訂單已更新',updatedP:'更改已儲存，新的確認電郵正在寄出。',
+  updated:'訂單已更新！',updatedP:'多謝！您的訂單已成功更新。我們會在所選的取貨時間備妥您的產品。',updatedP2:'載有更新後訂單詳情的中英對照確認電郵將很快送達。',
   back:'返回餐單',newOrder:'再下一張訂單',manageT:'你的訂單',editT:'更改訂單',
   sameDay:'取貨前一天或以前可更改或取消訂單。',editItems:'修改產品',cancelO:'取消訂單',
   cancelQ:'取消此訂單？',cancelT:'這會取消你整張預訂單。',keep:'保留訂單',yesCancel:'確定取消',cancelled:'訂單已取消',cancelledP:'你的預訂已取消，期待下次再見。',notFoundT:'此訂單已被取消',notFoundP:'此預訂單之前已被取消。',notFoundQ:'並非您本人取消？請發短訊至 {phone}，我們樂意協助。',
@@ -597,7 +597,7 @@ function scDone() {
   if (k === 'cancelled') return `<div class="done"><div class="ck" style="background:#9a948c">✕</div><h2>${esc(t('cancelled'))}</h2><p>${esc(t('cancelledP'))}</p></div>` + tail;
   if (k === 'notfound') return `<div class="done"><div class="ck" style="background:#9a948c">?</div><h2>${esc(t('notFoundT'))}</h2><p>${esc(t('notFoundP'))}</p><p>${esc(t('notFoundQ', { phone: phoneNo() }))}</p></div>` + tail;
   const upd = k === 'updated';
-  return `<div class="done"><div class="ck">✓</div><h2>${esc(t(upd ? 'updated' : 'placed'))}</h2><p>${esc(t(upd ? 'updatedP' : 'placedP'))}</p>${upd ? '' : `<p style="font-size:13px">${esc(t('placedP2'))}</p>`}</div><div class="box pk"><div><b style="font-size:13px;color:var(--mu)">${esc(t('pu'))}</b><div>${esc(r.when || '')}</div></div></div>` + summaryBox(r.cart) + (r.reminder ? `<div class="good" style="margin:10px 18px 0">✓ ${esc(t('rem'))}</div>` : '') + tail;
+  return `<div class="done"><div class="ck">✓</div><h2>${esc(t(upd ? 'updated' : 'placed'))}</h2><p>${esc(t(upd ? 'updatedP' : 'placedP'))}</p><p style="font-size:13px">${esc(t(upd ? 'updatedP2' : 'placedP2'))}</p></div><div class="box pk"><div><b style="font-size:13px;color:var(--mu)">${esc(t('pu'))}</b><div>${esc(r.when || '')}</div></div></div>` + summaryBox(r.cart) + (r.reminder ? `<div class="good" style="margin:10px 18px 0">✓ ${esc(t('rem'))}</div>` : '') + tail;
 }
 function scManage() {
   const o = st.order || {}, locked = (o.lockedOptions || []).filter(n => (o.items[n] || 0) > 0);
