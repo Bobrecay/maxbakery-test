@@ -161,7 +161,7 @@ const S = {
   cancelQ:'Cancel this order?',cancelT:'This will cancel your entire pre-order.',keep:'Keep my order',yesCancel:'Yes, cancel it',cancelled:'Order cancelled',cancelledP:'Your pre-order has been cancelled. We hope to see you again soon.',notFoundT:'This order has already been cancelled',notFoundP:'This pre-order was previously cancelled.',notFoundQ:"Didn't cancel this order yourself? Please text us at {phone} so we can help.",
   fullT:'That time won\'t work',fullP:"Some items in your order aren't available at that time: {i}. These times work for your entire order:",other:'Choose another time',
   largeT:'Large order?',ok:'OK',close:'Close',retry:'Try again',goBack:'Go back',
-  fixT:'Almost there!',fixP:'Please complete the highlighted fields before continuing.',reqName:'Please enter your name',reqEmail:'Please enter a valid email',reqPhone:'Please enter a valid phone number',
+  fixT:'Almost there!',fixP:'Please complete the highlighted fields before continuing.',reqName:'Please enter your name',reqEmail0:'Please enter your email address.',reqEmail:'Please enter a valid email address.',reqPhone:'Please enter a valid phone number',
   h:'h',m:'m',whole:'Whole',half:'Half',dozen:'Dozen',
   loading:'Loading availability…',checking:'Checking availability…',placing:'Placing your order…',saving:'Saving your changes…',cancelling:'Cancelling your order…',loadingOrder:'Loading your order…',
   mHeads:'Heads up',mCheck:'Please check your order',mFull:'That time is full',mClosed:'We are closed',mLarge:'Large order?',mBusy:'Very popular right now',mLocked:'Past the cutoff',mDate:'Date not available',mNet:'Connection problem',mMerge:'You already have an order',
@@ -199,7 +199,7 @@ const S = {
   cancelQ:'取消此訂單？',cancelT:'這會取消你整張預訂單。',keep:'保留訂單',yesCancel:'確定取消',cancelled:'訂單已取消',cancelledP:'你的預訂已取消，期待下次再見。',notFoundT:'此訂單已被取消',notFoundP:'此預訂單之前已被取消。',notFoundQ:'並非您本人取消？請發短訊至 {phone}，我們樂意協助。',
   fullT:'該時段不適用',fullP:'你的訂單中並非所有產品都能在該時段提供：{i}。以下時間適合你整張訂單：',other:'選擇其他時間',
   largeT:'大量訂購？',ok:'好',close:'關閉',retry:'再試一次',goBack:'返回',
-  fixT:'快完成了！',fixP:'請先填寫標示的欄位，才能繼續。',reqName:'請輸入姓名',reqEmail:'請輸入有效電郵',reqPhone:'請輸入有效電話號碼',
+  fixT:'快完成了！',fixP:'請先填寫標示的欄位，才能繼續。',reqName:'請輸入姓名',reqEmail0:'請輸入您的電郵地址。',reqEmail:'請輸入有效的電郵地址。',reqPhone:'請輸入有效電話號碼',
   h:'小時',m:'分鐘',whole:'整條',half:'半條',dozen:'一打',
   loading:'正在載入…',checking:'正在查詢空位…',placing:'正在提交訂單…',saving:'正在儲存更改…',cancelling:'正在取消訂單…',loadingOrder:'正在載入訂單…',
   mHeads:'請注意',mCheck:'請檢查訂單',mFull:'此時段已滿',mClosed:'休息日',mLarge:'大量訂單？',mBusy:'此時段非常熱門',mLocked:'已過截單時間',mDate:'日期不適用',mNet:'連線問題',mMerge:'您已有訂單',
@@ -580,7 +580,7 @@ function scPickup() {
 }
 const pickBox = (changeable, style) => `<div class="box pk" ${style ? `style="${style}"` : ''}><div><b style="font-size:13px;color:var(--mu)">${esc(t('pu'))}</b><div>${esc(pickTxt())}</div></div>${changeable ? `<a data-go="pickup">${esc(t('change'))}</a>` : ''}</div>`;
 function scDetails() {
-  const fld = (k, type, ph, auto) => `<label class="fld ${st.bad[k] ? 'bad' : ''}"><span>${esc(t(k))}</span><input data-f="${k}" type="${type}" value="${esc(st[k])}" placeholder="${esc(ph || '')}" autocomplete="${auto}"><em>${esc(t(k === 'name' ? 'reqName' : k === 'email' ? 'reqEmail' : 'reqPhone'))}</em></label>`;
+  const fld = (k, type, ph, auto) => `<label class="fld ${st.bad[k] ? 'bad' : ''}"><span>${esc(t(k))}</span><input data-f="${k}" type="${type}" value="${esc(st[k])}" placeholder="${esc(ph || '')}" autocomplete="${auto}"><em>${esc(t(k === 'name' ? 'reqName' : k === 'email' ? (st.email.trim() ? 'reqEmail' : 'reqEmail0') : 'reqPhone'))}</em></label>`;
   return topBar(t('details'), 'pickup', true) + stepBar('details') + pickBox(true, 'margin-bottom:14px') + fld('name', 'text', '', 'name') + fld('email', 'email', '', 'email') + fld('phone', 'tel', '(416) 555-0123', 'tel') +
    `<label class="fld"><span>${esc(t('notes'))}</span><textarea data-f="notes" rows="2">${esc(st.notes)}</textarea></label><label class="chk"><input type="checkbox" data-f="reminder" ${st.reminder ? 'checked' : ''}><span>${esc(t('rem'))}</span></label>`;
 }
