@@ -686,7 +686,7 @@ async function placeOrder() {
     if (ex && ex.found) { const go2 = await modal({ title: t('mMerge'), paras: [t('mergeMsg'), t('mergeMsg2')], buttons: [{ label: t('mergeBtn'), v: true }, { label: t('goBack'), g: true, v: false }] }); if (!go2) return; }
     for (let attempt = 0; attempt < 2; attempt++) {
       const res = await busyCall(t('placing'), 'submitOrder', { data: { name: st.name.trim(), email: st.email.trim(), phone: st.phone, pickupDate: st.date, pickupTime: st.slot, notes: st.notes, reminder: !!st.reminder, items: itemsPayload() } }, 40000);
-      if (res && res.success) { st.result = { kind: 'placed', when: pickTxt(), cart: res.mergedItems || cartQty(), reminder: st.reminder }; clearTimeout(weekTimer); showDone(); return; }
+      if (res && res.success) { st.result = { kind: res.merged ? 'updated' : 'placed', when: pickTxt(), cart: res.mergedItems || cartQty(), reminder: st.reminder }; clearTimeout(weekTimer); showDone(); return; }
       const r = await showFailure(res || { network: true });
       if (r === 'retry') continue;
       if (r !== 'moved') afterFailure(res || {});
